@@ -344,6 +344,10 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "warp")) {
+			action_arg_add_bool(action, argument, parse_bool(content, true));
+			goto cleanup;
+		}
 		if (!strcasecmp(argument, "output")) {
 			if (!strcasecmp(content, "all")) {
 				action_arg_add_int(action, argument, CYCLE_OUTPUT_ALL);
@@ -1139,6 +1143,12 @@ run_action(struct view *view, struct action *action,
 			cycle_step(dir);
 		} else {
 			cycle_begin(dir, filter);
+		}
+		
+		if (action_get_bool(action, "warp",
+				rc.window_switcher.workspace_filter)) {
+			warp_cursor(server.cycle.selected_view,
+					"window", "center", "center");
 		}
 		break;
 	}
