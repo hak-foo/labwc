@@ -61,6 +61,74 @@ parse_workspace_index(const char *name)
 	return index;
 }
 
+
+
+void pager_create(void)
+{
+	struct output *output;
+	wl_list_for_each(output, &server.outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+
+		if (output_is_usable(output) && output->pager_osd) {
+			wlr_scene_node_set_enabled(&output->pager_osd->node, true);
+		}
+	}
+}
+
+void pager_update(void) {
+
+struct theme *theme = rc.theme;
+	int width = 300;
+	int height = 200;
+	int x = 4000;
+	int y = 70;
+	int bw = theme->osd_border_width;
+	struct output *output;
+	wl_list_for_each(output, &server.outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+
+struct lab_data_buffer *buffer = buffer_create_cairo(width, height,
+			output->wlr_output->scale);
+		if (!buffer) {
+			wlr_log(WLR_ERROR, "Failed to allocate buffer for pager");
+			continue;
+		}
+	
+
+	cairo_t *cairo;
+	cairo_surface_t *surface;
+	
+cairo = cairo_create(buffer->surface);
+
+	
+		/* Background */
+		set_cairo_color(cairo, theme->osd_bg_color);
+		cairo_rectangle(cairo, bw, bw, width-bw*2, height-bw*2);
+		cairo_fill(cairo);
+
+surface = cairo_get_target(cairo);
+		cairo_surface_flush(surface);
+		cairo_destroy(cairo);
+
+
+		if (!output->pager_osd) {
+			output->pager_osd = lab_wlr_scene_buffer_create(
+				&server.scene->tree, NULL);
+		}
+
+		wlr_scene_node_set_position(&output->pager_osd->node, x, y);
+		wlr_scene_buffer_set_buffer(output->pager_osd, &buffer->base);
+		wlr_scene_buffer_set_dest_size(output->pager_osd,
+			buffer->logical_width, buffer->logical_height);
+
+}
+}
+
+
 static void
 _osd_update(void)
 {
