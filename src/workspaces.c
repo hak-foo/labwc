@@ -30,6 +30,8 @@
 
 #define EXT_WORKSPACES_VERSION 1
 
+float pager_drag_start_x, pager_drag_start_y;
+
 /* Internal helpers */
 static size_t
 parse_workspace_index(const char *name)
@@ -106,7 +108,47 @@ struct view * find_pager_window(float sx, float sy)
 
 void process_pager_release(float sx, float sy)
 {
-	printf("Pager Released %f %f\n", sx, sy);
+	// TODO: configrable
+	int pagerwidth = 300;
+	int totalPagerheight = 200;
+	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	
+	struct wlr_box overallBox = { 0 };
+	wlr_output_layout_get_box(server.output_layout,
+		NULL, &overallBox);
+
+	int screenwidth = overallBox.width - overallBox.x;
+	int screenheight = overallBox.height - overallBox.y;
+
+	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
+	if (found_view) {
+		// Debounces "click to raise"
+		if (abs((int)(pager_drag_start_x-sx)) > 2 || abs((int)(pager_drag_start_y - sy)) > 2) {
+			int old_workspace = pager_drag_start_y / pagerheight;
+			int new_workspace = sy / pagerheight;
+			if (old_workspace == new_workspace) {
+				int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
+				int delta_y = (sy - pager_drag_start_y) * screenheight / pagerheight;	
+				view_move_relative(found_view, delta_x, delta_y);
+			} else {
+				int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
+				int delta_y = (((int)sy % pagerheight) - ((int)pager_drag_start_y % pagerheight)) * screenheight / pagerheight;	
+				int target_workspace = sy/pagerheight;
+				int wscount = 0;
+				struct workspace * workspace;
+				wl_list_for_each(workspace, &server.workspaces.all, link) {
+					if (wscount == target_workspace) {
+						view_move_to_workspace(found_view, workspace);
+						break;
+					}
+					wscount++;
+				}
+				view_move_relative(found_view, delta_x, delta_y);
+			}
+			pager_update();
+		}
+	}
+	
 }
 
 void process_pager_press(float sx, float sy)
@@ -114,8 +156,9 @@ void process_pager_press(float sx, float sy)
 	printf("Pager Pressed %f %f\n", sx, sy);
 	struct view * foundView = find_pager_window(sx, sy);
 	if (foundView) {
-		printf("Raising...\n");
 		desktop_focus_view(foundView, true);
+		pager_drag_start_x = sx;
+		pager_drag_start_y = sy;
 		pager_update();
 	} else {
 		printf("No match\n");
