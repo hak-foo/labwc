@@ -230,6 +230,12 @@ void pager_update(void) {
 					int wy = view->current.y * pagerheight / screenheight + pagerheight * wscount;
 					int width = view->current.width * pagerwidth / screenwidth;
 					int height = view->current.height * pagerheight / screenheight;
+					// Bound the outlines to the current pager frame
+					if (wy < pagerheight * wscount) {
+						height += (wy - pagerheight * wscount);
+					}
+					wy = MAX(pagerheight*wscount, wy);
+					height = MIN(height, (wscount+1) * pagerheight - wy);
 					struct wlr_fbox border_fbox = {
 						.x = wx,
 						.y = wy,
