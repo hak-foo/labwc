@@ -29,5 +29,8 @@ struct workspace *workspaces_find(struct workspace *anchor, const char *name,
 void workspaces_reconfigure(void);
 void pager_create(void);
 void pager_update(void);
+void process_pager_release(float sx, float sy);
+void process_pager_press(float sx, float sy);
+struct view *find_pager_window(float sx, float sy);
 
 #endif /* LABWC_WORKSPACES_H */

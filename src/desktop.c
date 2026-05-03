@@ -365,6 +365,9 @@ get_cursor_context(void)
 				}
 
 				return ret;
+			case LAB_NODE_PAGER:
+				ret.type = LAB_NODE_PAGER;
+				return ret;
 			default:
 				/* Other node types are not attached a scene node */
 				wlr_log(WLR_ERROR, "unexpected node type: %d", desc->type);
