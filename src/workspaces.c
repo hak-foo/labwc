@@ -26,6 +26,7 @@
 #include "theme.h"
 #include "view.h"
 #include "regions.h"
+#include "node.h"
 
 #define EXT_WORKSPACES_VERSION 1
 
@@ -63,12 +64,67 @@ parse_workspace_index(const char *name)
 }
 
 
+struct view * find_pager_window(float sx, float sy)
+{
+	
+	// TODO: configrable
+	int pagerwidth = 300;
+	int totalPagerheight = 200;
+	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	
+	struct wlr_box overallBox = { 0 };
+	wlr_output_layout_get_box(server.output_layout,
+		NULL, &overallBox);
 
+	int screenwidth = overallBox.width - overallBox.x;
+	int screenheight = overallBox.height - overallBox.y;
+	
 
+	struct workspace *workspace;
+	struct view *view;
+	
+	int wscount = 0;
+		wl_list_for_each(workspace, &server.workspaces.all, link) {
+			// Start at the top down
+			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+				if (view->workspace == workspace) {
+					int wx = view->current.x * pagerwidth / screenwidth;
+					int wy = view->current.y * pagerheight / screenheight + pagerheight * wscount;
+					int width = view->current.width * pagerwidth / screenwidth;
+					int height = view->current.height * pagerheight / screenheight;
+					printf ("Possible window: %d %d %d %d - %d %d\n", wx, wy, width, height, screenwidth, screenheight);
+					if (sx >= wx && sy >= wy && sx <= wx+width && sy <= wy+height) {
+						return view;
+					}
+				}
+			}
+			wscount++;
+		}
+	
+	return NULL;
+}
+
+void process_pager_release(float sx, float sy)
+{
+	printf("Pager Released %f %f\n", sx, sy);
+}
+
+void process_pager_press(float sx, float sy)
+{
+	printf("Pager Pressed %f %f\n", sx, sy);
+	struct view * foundView = find_pager_window(sx, sy);
+	if (foundView) {
+		printf("Raising...\n");
+		desktop_focus_view(foundView, true);
+		pager_update();
+	} else {
+		printf("No match\n");
+	}
+	// Save sx and sy for future drag actions
+}
 
 void pager_update(void) {
-
-struct theme *theme = rc.theme;
+	struct theme *theme = rc.theme;
 	// TODO: configrable
 	int pagerwidth = 300;
 	int totalPagerheight = 200;
@@ -155,8 +211,10 @@ struct theme *theme = rc.theme;
 		if (!output->pager_osd) {
 			output->pager_osd = lab_wlr_scene_buffer_create(
 				&server.scene->tree, NULL);
+			node_descriptor_create(&output->pager_osd->node, LAB_NODE_PAGER, NULL, 0);
 		}
 
+		
 		wlr_scene_node_set_position(&output->pager_osd->node, x, y);
 		wlr_scene_buffer_set_buffer(output->pager_osd, &buffer->base);
 		wlr_scene_buffer_set_dest_size(output->pager_osd,

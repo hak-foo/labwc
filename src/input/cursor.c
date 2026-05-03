@@ -37,6 +37,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "xwayland.h"
+#include "workspaces.h"
 
 #if WLR_HAS_LIBINPUT_BACKEND
 	#include <wlr/backend/libinput.h>
@@ -1150,6 +1151,11 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		interactive_set_grab_context(&ctx);
 	}
 
+	if (ctx.type == LAB_NODE_PAGER) {
+		process_pager_press(ctx.sx, ctx.sy);
+		return false;
+	}
+	
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/*
 		 * If menu was already opened on press, set a very small value
@@ -1217,6 +1223,11 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
 	cursor_context_save(&seat->pressed, NULL);
+	
+	if (ctx.type == LAB_NODE_PAGER) {
+		process_pager_release(ctx.sx, ctx.sy);
+		return false;
+	}
 
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */
