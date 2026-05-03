@@ -24,6 +24,7 @@
 #include "output.h"
 #include "theme.h"
 #include "view.h"
+#include "regions.h"
 
 #define EXT_WORKSPACES_VERSION 1
 
@@ -62,42 +63,52 @@ parse_workspace_index(const char *name)
 
 
 
-void pager_create(void)
-{
-	struct output *output;
-	wl_list_for_each(output, &server.outputs, link) {
-		if (!output_is_usable(output)) {
-			continue;
-		}
 
-		if (output_is_usable(output) && output->pager_osd) {
-			wlr_scene_node_set_enabled(&output->pager_osd->node, true);
-		}
-	}
-}
 
 void pager_update(void) {
 
 struct theme *theme = rc.theme;
 	// TODO: configrable
 	int pagerwidth = 300;
-	int pagerheight = 200;
+	int totalPagerheight = 200;
 	int x = 1000;
 	int y = 70;
 	
-	// TODO: calculate
-	int screenwidth = 5120;
-	int screenheight = 1440;
 	struct output *output;
 	struct workspace *workspace;
 	struct view *view;
+	struct wlr_box overallBox = { 0 };
+	wlr_output_layout_get_box(server.output_layout,
+		NULL, &overallBox);
+
+	int screenwidth = overallBox.width - overallBox.x;
+	int screenheight = overallBox.height - overallBox.y;
+	
+	// Divide pager among workspaces vertically
+	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	
+	
+	float dimBackground[4];
+	dimBackground[0] = theme->osd_border_color[0] * .75;
+	dimBackground[1] = theme->osd_border_color[1] * .75;
+	dimBackground[2] = theme->osd_border_color[2] * .75;
+	dimBackground[3] = theme->osd_border_color[3];
+	
+	float brightBackground[4];
+	brightBackground[0] = theme->osd_border_color[0] * 1.5;
+	brightBackground[1] = theme->osd_border_color[1] * 1.5;
+	brightBackground[2] = theme->osd_border_color[2] * 1.5;
+	brightBackground[3] = theme->osd_border_color[3];
+	
+
+	
 	wl_list_for_each(output, &server.outputs, link) {
 		if (!output_is_usable(output)) {
 			continue;
 		}
 
 		struct lab_data_buffer *buffer = buffer_create_cairo(pagerwidth,
-			pagerheight, output->wlr_output->scale);
+			totalPagerheight, output->wlr_output->scale);
 		if (!buffer) {
 			wlr_log(WLR_ERROR, "Failed to allocate buffer for pager");
 			continue;
@@ -106,101 +117,34 @@ struct theme *theme = rc.theme;
 		cairo_t *cairo;
 		cairo_surface_t *surface;
 		cairo = cairo_create(buffer->surface);
-
-		/* Background */
-		set_cairo_color(cairo, theme->osd_bg_color);
-		cairo_rectangle(cairo, 0, 0, pagerwidth, pagerheight);
-		cairo_fill(cairo);
-
-		set_cairo_color(cairo, theme->osd_label_text_color);
-		
-		float r, g, b, a;
-		struct borderset *renderedborders;
-		uint32_t colour32;
-		int bw = 1;
-		if (theme->osd_border_type) {
-			r = theme->osd_border_color[0];
-			g = theme->osd_border_color[1];
-			b = theme->osd_border_color[2];
-			a = theme->osd_border_color[3];
-
-			colour32 = (uint32_t)(a*255) << 24 |
-				(uint32_t)(r*255) << 16 |
-				(uint32_t)(g*255) << 8 |
-				(uint32_t)(b*255);
-			renderedborders = get_borders(colour32, bw,
-				theme->osd_border_type, theme->osd_border_bevel_width,
-				theme->osd_highlight, theme->osd_shadow);
-		}
-		
-		pagerheight = pagerheight / wl_list_length(&rc.workspace_config.workspaces);
-		int workspacecount = 0;
+		int wscount = 0;
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
-		
+			/* Background */
+			set_cairo_color(cairo, server.workspaces.current == workspace ? theme->osd_bg_color : dimBackground);
+			cairo_rectangle(cairo, 0, pagerheight * wscount, pagerwidth, pagerheight);
+			cairo_fill(cairo);
+			
 			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
- 				int wx = view->current.x * pagerwidth / screenwidth;
-				int wy = view->current.y * pagerheight / screenheight + pagerheight * workspacecount;
-				int width = view->current.width * pagerwidth / screenwidth;
-				int height = view->current.height * pagerheight / screenheight;
 				if (view->workspace == workspace) {
-					if (theme->osd_border_type) {
-						set_cairo_color(cairo, theme->osd_bg_color);
-						cairo_rectangle(cairo, wx, wy, width, height);
-						cairo_fill(cairo);
-						cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
-						cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
-						cairo_rectangle(cairo, wx+bw, wy+0, width-bw*2, bw);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->bottom->surface, 0, 0);
-						cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
-						cairo_rectangle(cairo, wx+bw, wy+height-bw, width-bw*2, bw);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->left->surface, 0, 0);
-						cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
-						cairo_rectangle(cairo, wx+0, wy+bw, bw, height-bw*2);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->right->surface, 0, 0);
-						cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
-						cairo_rectangle(cairo, wx+width-bw, wy+bw, bw, height-bw*2);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->tl->surface, 0, 0);
-						cairo_rectangle(cairo, wx+0, wy+0, bw, bw);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->tr->surface, width-bw, 0);
-						cairo_rectangle(cairo, wx+width - bw, wy+0, bw, bw);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->bl->surface,
-							0, height - bw);
-						cairo_rectangle(cairo, wx+0, wy+height - bw, bw, bw);
-						cairo_fill(cairo);
-
-						cairo_set_source_surface(cairo, renderedborders->br->surface,
-							width - bw, height -bw);
-						cairo_rectangle(cairo, wx+width - bw, wy+height - bw, bw, bw);
-						cairo_fill(cairo);
-
-						
-						
-					} else {
-						set_cairo_color(cairo, theme->osd_border_color);
-						struct wlr_fbox border_fbox = {
-							.x = wx,
-							.y = wy,
-							.width = width,
-							.height = height,
-							};
-						draw_cairo_border(cairo, border_fbox, theme->osd_border_width);
-					}
-
+					int wx = view->current.x * pagerwidth / screenwidth;
+					int wy = view->current.y * pagerheight / screenheight + pagerheight * wscount;
+					int width = view->current.width * pagerwidth / screenwidth;
+					int height = view->current.height * pagerheight / screenheight;
+					struct wlr_fbox border_fbox = {
+						.x = wx,
+						.y = wy,
+						.width = width,
+						.height = height,
+						};
+					set_cairo_color(cairo, brightBackground);
+					cairo_rectangle(cairo, wx, wy, width, height);
+					cairo_fill(cairo);
+					set_cairo_color(cairo, theme->osd_label_text_color);
+					draw_cairo_border(cairo, border_fbox, 2);
+					
 				}
 			}
-			workspacecount++;
+			wscount++;
 		}
 
 		surface = cairo_get_target(cairo);
@@ -216,6 +160,7 @@ struct theme *theme = rc.theme;
 		wlr_scene_buffer_set_buffer(output->pager_osd, &buffer->base);
 		wlr_scene_buffer_set_dest_size(output->pager_osd,
 			buffer->logical_width, buffer->logical_height);
+		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
 
 	}
 }
