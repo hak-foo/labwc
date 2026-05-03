@@ -640,6 +640,17 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 	struct cursor_context ctx = get_cursor_context();
 	struct seat *seat = &server.seat;
 
+	if (ctx.type == LAB_NODE_PAGER) {
+		process_pager_drag(ctx.sx, ctx.sy);
+		return false;
+	} else {
+		// Kill a pager drag if the cursor leaves the pager.
+		if (active_drag_view) {
+			active_drag_view = NULL;
+		}
+	}
+
+
 	if (ctx.type == LAB_NODE_MENUITEM) {
 		menu_process_cursor_motion(ctx.node);
 		cursor_set(&server.seat, LAB_CURSOR_DEFAULT);

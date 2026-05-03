@@ -31,6 +31,7 @@
 #define EXT_WORKSPACES_VERSION 1
 
 float pager_drag_start_x, pager_drag_start_y;
+struct view *active_drag_view;
 
 /* Internal helpers */
 static size_t
@@ -106,9 +107,8 @@ struct view * find_pager_window(float sx, float sy)
 	return NULL;
 }
 
-void process_pager_release(float sx, float sy)
-{
-	// TODO: configrable
+void process_pager_move(float sx, float sy, struct view *found_view) {
+		// TODO: configrable
 	int pagerwidth = 300;
 	int totalPagerheight = 200;
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
@@ -120,50 +120,64 @@ void process_pager_release(float sx, float sy)
 	int screenwidth = overallBox.width - overallBox.x;
 	int screenheight = overallBox.height - overallBox.y;
 
-	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
+
 	if (found_view) {
-		// Debounces "click to raise"
-		if (abs((int)(pager_drag_start_x-sx)) > 2 || abs((int)(pager_drag_start_y - sy)) > 2) {
-			int old_workspace = pager_drag_start_y / pagerheight;
-			int new_workspace = sy / pagerheight;
-			if (old_workspace == new_workspace) {
-				int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
-				int delta_y = (sy - pager_drag_start_y) * screenheight / pagerheight;	
-				view_move_relative(found_view, delta_x, delta_y);
-			} else {
-				int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
-				int delta_y = (((int)sy % pagerheight) - ((int)pager_drag_start_y % pagerheight)) * screenheight / pagerheight;	
-				int target_workspace = sy/pagerheight;
-				int wscount = 0;
-				struct workspace * workspace;
-				wl_list_for_each(workspace, &server.workspaces.all, link) {
-					if (wscount == target_workspace) {
-						view_move_to_workspace(found_view, workspace);
-						break;
-					}
-					wscount++;
+		int old_workspace = pager_drag_start_y / pagerheight;
+		int new_workspace = sy / pagerheight;
+		if (old_workspace == new_workspace) {
+			int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
+			int delta_y = (sy - pager_drag_start_y) * screenheight / pagerheight;	
+			view_move_relative(found_view, delta_x, delta_y);
+		} else {
+			int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;	
+			int delta_y = (((int)sy % pagerheight) - ((int)pager_drag_start_y % pagerheight)) * screenheight / pagerheight;	
+			int target_workspace = sy/pagerheight;
+			int wscount = 0;
+			struct workspace * workspace;
+			wl_list_for_each(workspace, &server.workspaces.all, link) {
+				if (wscount == target_workspace) {
+					view_move_to_workspace(found_view, workspace);
+					break;
 				}
-				view_move_relative(found_view, delta_x, delta_y);
+				wscount++;
 			}
-			pager_update();
+			view_move_relative(found_view, delta_x, delta_y);
 		}
+		pager_update();
 	}
-	
+}
+
+void process_pager_release(float sx, float sy)
+{
+	if (!active_drag_view) return;
+	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
+	process_pager_move(sx, sy, found_view);
+	active_drag_view = NULL;
+	printf("released\n");
+}
+
+void process_pager_drag(float sx, float sy) {
+	if (active_drag_view) {
+		printf("Drag move %f %f\n", sx, sy);
+		process_pager_move(sx, sy, active_drag_view);
+		pager_drag_start_x = sx;
+		pager_drag_start_y = sy;
+	}
 }
 
 void process_pager_press(float sx, float sy)
 {
 	printf("Pager Pressed %f %f\n", sx, sy);
-	struct view * foundView = find_pager_window(sx, sy);
-	if (foundView) {
-		desktop_focus_view(foundView, true);
+	struct view * found_view = find_pager_window(sx, sy);
+	if (found_view) {
+		desktop_focus_view(found_view, true);
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
 		pager_update();
 	} else {
 		printf("No match\n");
 	}
-	// Save sx and sy for future drag actions
+	active_drag_view = found_view;
 }
 
 void pager_update(void) {
