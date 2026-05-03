@@ -94,7 +94,6 @@ struct view * find_pager_window(float sx, float sy)
 					int wy = view->current.y * pagerheight / screenheight + pagerheight * wscount;
 					int width = view->current.width * pagerwidth / screenwidth;
 					int height = view->current.height * pagerheight / screenheight;
-					printf ("Possible window: %d %d %d %d - %d %d\n", wx, wy, width, height, screenwidth, screenheight);
 					if (sx >= wx && sy >= wy && sx <= wx+width && sy <= wy+height) {
 						return view;
 					}
@@ -152,12 +151,10 @@ void process_pager_release(float sx, float sy)
 	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
 	process_pager_move(sx, sy, found_view);
 	active_drag_view = NULL;
-	printf("released\n");
 }
 
 void process_pager_drag(float sx, float sy) {
 	if (active_drag_view) {
-		printf("Drag move %f %f\n", sx, sy);
 		process_pager_move(sx, sy, active_drag_view);
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
@@ -166,15 +163,12 @@ void process_pager_drag(float sx, float sy) {
 
 void process_pager_press(float sx, float sy)
 {
-	printf("Pager Pressed %f %f\n", sx, sy);
 	struct view * found_view = find_pager_window(sx, sy);
 	if (found_view) {
 		desktop_focus_view(found_view, true);
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
 		pager_update();
-	} else {
-		printf("No match\n");
 	}
 	active_drag_view = found_view;
 }
@@ -213,7 +207,7 @@ void pager_update(void) {
 	brightBackground[2] = theme->osd_border_color[2] * 1.5;
 	brightBackground[3] = theme->osd_border_color[3];
 	
-
+	int font_h = font_height(&rc.font_osd);
 	
 	wl_list_for_each(output, &server.outputs, link) {
 		if (!output_is_usable(output)) {
@@ -257,7 +251,7 @@ void pager_update(void) {
 						};
 					
 					double dashes[] = {1.0};
-					if (view->minimized || view->shaded) {
+					if (view->minimized) {
 						cairo_set_dash(cairo, dashes, 1, 0);
 					} else {
 						cairo_set_dash(cairo, dashes, 0, 0);
@@ -272,6 +266,25 @@ void pager_update(void) {
 					
 					set_cairo_color(cairo, theme->osd_label_text_color);
 					draw_cairo_border(cairo, border_fbox, 2);
+					
+					if (border_fbox.height >= font_h + 6) {
+						
+						PangoLayout *layout = pango_cairo_create_layout(cairo);
+						pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
+						pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+						int req_width = font_width(&rc.font_osd, view->title);
+						PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
+
+						req_width = MIN(req_width, border_fbox.width-6);
+						cairo_move_to(cairo,border_fbox.x+ (border_fbox.width - req_width) / 2, border_fbox.y+(border_fbox.height - font_h) / 2);
+						pango_layout_set_font_description(layout, desc);
+						pango_layout_set_width(layout, req_width * PANGO_SCALE);
+						pango_font_description_free(desc);
+						pango_layout_set_text(layout, view->title, -1);
+						pango_cairo_show_layout(cairo, layout);
+
+						g_object_unref(layout);
+					}
 					
 				}
 			}
