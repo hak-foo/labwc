@@ -68,7 +68,6 @@ parse_workspace_index(const char *name)
 
 struct view * find_pager_window(float sx, float sy)
 {
-	
 	// TODO: configrable
 	int pagerwidth = 300;
 	int totalPagerheight = 200;
@@ -255,9 +254,21 @@ void pager_update(void) {
 						.width = width,
 						.height = height,
 						};
+					
+					double dashes[] = {1.0};
+					if (view->minimized || view->shaded) {
+						cairo_set_dash(cairo, dashes, 1, 0);
+					} else {
+						cairo_set_dash(cairo, dashes, 0, 0);
+					}
+					if (view->shaded) {
+						border_fbox.height = 1;
+					}
 					set_cairo_color(cairo, brightBackground);
-					cairo_rectangle(cairo, wx, wy, width, height);
+					cairo_rectangle(cairo, border_fbox.x, border_fbox.y, border_fbox.width, border_fbox.height);
 					cairo_fill(cairo);
+					
+					
 					set_cairo_color(cairo, theme->osd_label_text_color);
 					draw_cairo_border(cairo, border_fbox, 2);
 					
