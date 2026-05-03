@@ -137,8 +137,9 @@ struct theme *theme = rc.theme;
 		pagerheight = pagerheight / wl_list_length(&rc.workspace_config.workspaces);
 		int workspacecount = 0;
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
-			wl_list_for_each(view, &server.views, link) {
-				int wx = view->current.x * pagerwidth / screenwidth;
+		
+			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+ 				int wx = view->current.x * pagerwidth / screenwidth;
 				int wy = view->current.y * pagerheight / screenheight + pagerheight * workspacecount;
 				int width = view->current.width * pagerwidth / screenwidth;
 				int height = view->current.height * pagerheight / screenheight;
