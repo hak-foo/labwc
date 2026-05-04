@@ -687,6 +687,18 @@ all are supported.
 *magnifier.border.color*
 	Color of the magnifier window border. Default is #ff0000 (red).
 
+# PAGER
+
+*pager.active*
+	Color of the active pager workspace. Default is #808080.
+
+*pager.inactive*
+	Color of the inactive pager workspace(s). Default is #404040.
+	
+*pager.window*
+	Color of the window models on the pager. Default is #c4c4c4.
+
+
 # BUTTONS
 
 The images used for the titlebar icons are referred to as buttons.

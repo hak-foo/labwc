@@ -202,6 +202,10 @@ struct theme {
 	int osd_border_bevel_width;
 	int osd_highlight;
 	int osd_shadow;
+	
+	float pager_color_active[4];
+	float pager_color_inactive[4];
+	float pager_color_window[4];
 
 	struct window_switcher_classic_theme {
 		int width;
