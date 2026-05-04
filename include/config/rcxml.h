@@ -211,6 +211,9 @@ struct rcxml {
 	float mag_scale;
 	float mag_increment;
 	bool mag_filter;
+	
+	bool pager_enabled;
+	int pager_x, pager_y, pager_width, pager_height;
 };
 
 /* defined in main.c */

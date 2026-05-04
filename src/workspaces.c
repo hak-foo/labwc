@@ -69,8 +69,8 @@ parse_workspace_index(const char *name)
 struct view * find_pager_window(float sx, float sy)
 {
 	// TODO: configrable
-	int pagerwidth = 300;
-	int totalPagerheight = 200;
+	int pagerwidth = rc.pager_width;
+	int totalPagerheight = rc.pager_height;
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
 	
 	struct wlr_box overallBox = { 0 };
@@ -105,9 +105,8 @@ struct view * find_pager_window(float sx, float sy)
 }
 
 void process_pager_move(float sx, float sy, struct view *found_view) {
-		// TODO: configrable
-	int pagerwidth = 300;
-	int totalPagerheight = 200;
+	int pagerwidth = rc.pager_width;
+	int totalPagerheight = rc.pager_height;
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
 	
 	struct wlr_box overallBox = { 0 };
@@ -188,18 +187,29 @@ void process_pager_press(float sx, float sy)
 }
 
 void pager_update(void) {
+	struct output *output;
+	if (!rc.pager_enabled) {
+		wl_list_for_each(output, &server.outputs, link) {
+			if (!output_is_usable(output)) {
+				continue;
+			}
+			if (output->pager_osd) {
+				wlr_scene_node_set_enabled(&output->pager_osd->node, false);
+			}
+		}
+		return;
+	}
 	if (wl_list_empty(&rc.workspace_config.workspaces)) {
 		return;
 	}
 	
 	struct theme *theme = rc.theme;
-	// TODO: configrable
-	int pagerwidth = 300;
-	int totalPagerheight = 200;
-	int x = 1000;
-	int y = 70;
+	int pagerwidth = rc.pager_width;
+	int totalPagerheight = rc.pager_height;
+	int x = rc.pager_x;
+	int y = rc.pager_y;
 	
-	struct output *output;
+
 	struct workspace *workspace;
 	struct view *view;
 	struct wlr_box overallBox = { 0 };
@@ -318,6 +328,7 @@ void pager_update(void) {
 				&server.scene->tree, NULL);
 			node_descriptor_create(&output->pager_osd->node, LAB_NODE_PAGER, NULL, 0);
 		}
+		wlr_scene_node_set_enabled(&output->pager_osd->node, true);
 
 		
 		wlr_scene_node_set_position(&output->pager_osd->node, x, y);
@@ -326,9 +337,7 @@ void pager_update(void) {
 			buffer->logical_width, buffer->logical_height);
 		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
 		wlr_buffer_drop(&buffer->base);
-		
 	}
-	
 }
 
 static void

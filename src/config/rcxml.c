@@ -1377,6 +1377,17 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.mag_increment = MAX(0, rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
+	} else if (!strcasecmp(nodename, "enabled.pager")) {
+		/* <pager enabled="true" x="1000" y="70" width="300" height="200" /> */
+		set_bool(content, &rc.pager_enabled);
+	} else if (!strcasecmp(nodename, "x.pager")) {
+		rc.pager_x = atoi(content);
+	} else if (!strcasecmp(nodename, "y.pager")) {
+		rc.pager_y = atoi(content);
+	} else if (!strcasecmp(nodename, "width.pager")) {
+		rc.pager_width = atoi(content);
+	} else if (!strcasecmp(nodename, "height.pager")) {
+		rc.pager_height = atoi(content);
 	}
 
 	return false;
@@ -1528,6 +1539,12 @@ rcxml_init(void)
 	rc.mag_scale = 2.0;
 	rc.mag_increment = 0.2;
 	rc.mag_filter = true;
+	
+	rc.pager_enabled = false;
+	rc.pager_x = 0;
+	rc.pager_y = 0;
+	rc.pager_width = 100;
+	rc.pager_height = 100;
 }
 
 static void
