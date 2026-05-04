@@ -146,9 +146,12 @@ void process_pager_move(float sx, float sy, struct view *found_view) {
 void process_pager_release(float sx, float sy)
 {
 	if (!active_drag_view) return;
+	
 	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
 	process_pager_move(sx, sy, found_view);
+	desktop_focus_view(found_view, true);
 	active_drag_view = NULL;
+	pager_update();
 }
 
 void process_pager_drag(float sx, float sy) {
@@ -163,25 +166,24 @@ void process_pager_press(float sx, float sy)
 {
 	struct view * found_view = find_pager_window(sx, sy);
 	if (found_view) {
-		desktop_focus_view(found_view, true);
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
 		pager_update();
 	} else {
-		int totalPagerheight = 200;
+		int totalPagerheight = rc.pager_height;
 		int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
 		int wscount = 0;
 		int target_workspace = sy/pagerheight;
-			struct workspace * workspace;
-			wl_list_for_each(workspace, &server.workspaces.all, link) {
-				if (wscount == target_workspace) {
-					workspaces_switch_to(workspace, /* update_focus */ true);
-					pager_update();
-					break;
-				}
-				wscount++;
-			}
 		
+		struct workspace * workspace;
+		wl_list_for_each(workspace, &server.workspaces.all, link) {
+			if (wscount == target_workspace) {
+				workspaces_switch_to(workspace, /* update_focus */ true);
+				pager_update();
+				break;
+			}
+			wscount++;
+		}
 	}
 	active_drag_view = found_view;
 }
