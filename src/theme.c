@@ -809,6 +809,9 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_bevel_width = 0;
 	theme->osd_highlight = 128;
 	theme->osd_shadow = 64;
+	parse_hexstr("#808080", theme->pager_color_active);
+	parse_hexstr("#404040", theme->pager_color_inactive);
+	parse_hexstr("#c4c4c4", theme->pager_color_window);
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -1468,6 +1471,15 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.label.text.color")) {
 		parse_color(value, theme->osd_label_text_color);
+	}
+	if (match_glob(key, "pager.active")) {
+		parse_color(value, theme->pager_color_active);
+	}
+	if (match_glob(key, "pager.inactive")) {
+		parse_color(value, theme->pager_color_inactive);
+	}
+	if (match_glob(key, "pager.window")) {
+		parse_color(value, theme->pager_color_window);
 	}
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
 		set_bool(value, &theme->snapping_overlay_region.bg_enabled);

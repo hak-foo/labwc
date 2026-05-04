@@ -68,7 +68,7 @@ parse_workspace_index(const char *name)
 
 struct view * find_pager_window(float sx, float sy)
 {
-	// TODO: configrable
+
 	int pagerwidth = rc.pager_width;
 	int totalPagerheight = rc.pager_height;
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
@@ -224,19 +224,6 @@ void pager_update(void) {
 	// Divide pager among workspaces vertically
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
 	
-	
-	float dimBackground[4];
-	dimBackground[0] = theme->osd_border_color[0] * .75;
-	dimBackground[1] = theme->osd_border_color[1] * .75;
-	dimBackground[2] = theme->osd_border_color[2] * .75;
-	dimBackground[3] = theme->osd_border_color[3];
-	
-	float brightBackground[4];
-	brightBackground[0] = theme->osd_border_color[0] * 1.5;
-	brightBackground[1] = theme->osd_border_color[1] * 1.5;
-	brightBackground[2] = theme->osd_border_color[2] * 1.5;
-	brightBackground[3] = theme->osd_border_color[3];
-	
 	int font_h = font_height(&rc.font_osd);
 	
 	wl_list_for_each(output, &server.outputs, link) {
@@ -257,7 +244,7 @@ void pager_update(void) {
 		int wscount = 0;
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
 			/* Background */
-			set_cairo_color(cairo, server.workspaces.current == workspace ? theme->osd_bg_color : dimBackground);
+			set_cairo_color(cairo, server.workspaces.current == workspace ? theme->pager_color_active : theme->pager_color_inactive);
 			cairo_rectangle(cairo, 0, pagerheight * wscount, pagerwidth, pagerheight);
 			cairo_fill(cairo);
 			
@@ -289,7 +276,7 @@ void pager_update(void) {
 					if (view->shaded) {
 						border_fbox.height = 1;
 					}
-					set_cairo_color(cairo, brightBackground);
+					set_cairo_color(cairo, theme->pager_color_window);
 					cairo_rectangle(cairo, border_fbox.x, border_fbox.y, border_fbox.width, border_fbox.height);
 					cairo_fill(cairo);
 					
