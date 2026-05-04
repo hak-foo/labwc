@@ -2306,6 +2306,7 @@ view_set_title(struct view *view, const char *title)
 
 	ssd_update_title(view->ssd);
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
+	pager_update();
 }
 
 void

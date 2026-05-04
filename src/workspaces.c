@@ -169,11 +169,30 @@ void process_pager_press(float sx, float sy)
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
 		pager_update();
+	} else {
+		int totalPagerheight = 200;
+		int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+		int wscount = 0;
+		int target_workspace = sy/pagerheight;
+			struct workspace * workspace;
+			wl_list_for_each(workspace, &server.workspaces.all, link) {
+				if (wscount == target_workspace) {
+					workspaces_switch_to(workspace, /* update_focus */ true);
+					pager_update();
+					break;
+				}
+				wscount++;
+			}
+		
 	}
 	active_drag_view = found_view;
 }
 
 void pager_update(void) {
+	if (wl_list_empty(&rc.workspace_config.workspaces)) {
+		return;
+	}
+	
 	struct theme *theme = rc.theme;
 	// TODO: configrable
 	int pagerwidth = 300;
@@ -307,8 +326,10 @@ void pager_update(void) {
 		wlr_scene_buffer_set_dest_size(output->pager_osd,
 			buffer->logical_width, buffer->logical_height);
 		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
-
+		wlr_buffer_drop(&buffer->base);
+		
 	}
+	
 }
 
 static void
