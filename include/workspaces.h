@@ -5,11 +5,13 @@
 #include <stdbool.h>
 #include <wayland-util.h>
 #include <wayland-server-core.h>
+#include <cairo.h>
 
 struct seat;
 struct server;
 struct wlr_scene_tree;
 struct view;
+enum border_type;
 struct workspace {
 	struct wl_list link; /* struct server.workspaces */
 
@@ -34,6 +36,10 @@ void process_pager_drag(float sx, float sy);
 void process_pager_press(float sx, float sy);
 void process_pager_move(float sx, float sy, struct view *found_view);
 struct view *find_pager_window(float sx, float sy);
+
+void
+cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
+			int shadow, enum border_type border_type, int bevel_width, float color[]);
 
 extern struct view *active_drag_view;
 
