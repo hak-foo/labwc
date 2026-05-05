@@ -554,6 +554,11 @@ cursor_update_common(const struct cursor_context *ctx,
 		 */
 		return;
 	}
+	
+	if (ctx->type == LAB_NODE_PAGER) {
+		// The pager manages its own cursor choices
+		return;
+	}
 
 	/* TODO: verify drag_icon logic */
 	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface
@@ -641,6 +646,13 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 	struct seat *seat = &server.seat;
 
 	if (ctx.type == LAB_NODE_PAGER) {
+		// We need to set cursor type here so we don't have a dangling "old" cursor
+		// if you move from a window into the pager.
+		if (active_drag_view) {
+			cursor_set(&server.seat, LAB_CURSOR_GRAB);
+		} else {
+			cursor_set(&server.seat, LAB_CURSOR_DEFAULT);
+		}
 		process_pager_drag(ctx.sx, ctx.sy);
 		return false;
 	} else {
