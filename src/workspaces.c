@@ -364,7 +364,7 @@ void pager_update(void) {
 
 void
 cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
-			int shadow, enum border_type border_type, int bevel_width, float color[])
+	int shadow, enum border_type border_type, int bevel_width, float color[])
 {
 	float r = color[0];
 	float g = color[1];
@@ -379,22 +379,22 @@ cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int h
 		border_type, bevel_width,
 		highlight, shadow);
 
-	cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
+	cairo_set_source_surface(cairo, renderedborders->top->surface, x+bw, y);
 	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
 	cairo_rectangle(cairo, x+bw, y, width-bw*2, bw);
 	cairo_fill(cairo);
 
-	cairo_set_source_surface(cairo, renderedborders->bottom->surface, 0, 0);
+	cairo_set_source_surface(cairo, renderedborders->bottom->surface,  x+bw, y+height-bw);
 	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
 	cairo_rectangle(cairo, x+bw, y+height-bw, width-bw*2, bw);
 	cairo_fill(cairo);
 
-	cairo_set_source_surface(cairo, renderedborders->left->surface, 0, 0);
+	cairo_set_source_surface(cairo, renderedborders->left->surface, x, y+bw);
 	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
 	cairo_rectangle(cairo, x, y + bw, bw, height-bw*2);
 	cairo_fill(cairo);
 
-	cairo_set_source_surface(cairo, renderedborders->right->surface, 0, 0);
+	cairo_set_source_surface(cairo, renderedborders->right->surface, x+width-bw, y+bw);
 	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
 	cairo_rectangle(cairo, x + width - bw, y + bw, bw, height-bw*2);
 	cairo_fill(cairo);
