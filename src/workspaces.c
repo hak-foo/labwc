@@ -153,8 +153,10 @@ void process_pager_release(float sx, float sy)
 	if (!active_drag_view) return;
 	
 	struct view * found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
-	process_pager_move(sx, sy, found_view);
-	desktop_focus_view(found_view, true);
+	if (found_view) {
+		process_pager_move(sx, sy, found_view);
+		desktop_focus_view(found_view, true);
+	}
 	active_drag_view = NULL;
 	pager_update();
 }
