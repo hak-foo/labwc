@@ -809,9 +809,16 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_bevel_width = 0;
 	theme->osd_highlight = 128;
 	theme->osd_shadow = 64;
+
 	parse_hexstr("#808080", theme->pager_color_active);
 	parse_hexstr("#404040", theme->pager_color_inactive);
 	parse_hexstr("#c4c4c4", theme->pager_color_window);
+	theme->pager_color_border[0] = FLT_MIN;
+	theme->pager_border_type = BORDER_NONE;
+	theme->pager_border_width = 0;
+	theme->pager_bevel_width = 0;
+	theme->pager_highlight = 128;
+	theme->pager_shadow = 64;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -1481,6 +1488,33 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "pager.window")) {
 		parse_color(value, theme->pager_color_window);
 	}
+	if (match_glob(key, "pager.border.color")) {
+		parse_color(value, theme->pager_color_border);
+	}
+	if (match_glob(key, "pager.border.width")) {
+		theme->pager_border_width =
+			get_int_if_positive(
+				value, "pager.border.width");
+	}
+	if (match_glob(key, "pager.border.bevel-width")) {
+		theme->pager_bevel_width =
+			get_int_if_positive(
+				value, "pager.border.bevel-width");
+	}
+	if (match_glob(key, "pager.border.highlight")) {
+		theme->pager_highlight =
+			get_int_if_positive(
+				value, "pager.border.highlight");
+	}
+	if (match_glob(key, "pager.border.shadow")) {
+		theme->pager_highlight =
+			get_int_if_positive(
+				value, "pager.border.shadow");
+	}
+	if (match_glob(key, "pager.border") && parse_border_type(value)) {
+		theme->pager_border_type = parse_border_type(value);
+	}
+	
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
 		set_bool(value, &theme->snapping_overlay_region.bg_enabled);
 	}
