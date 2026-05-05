@@ -1507,7 +1507,7 @@ entry(struct theme *theme, const char *key, const char *value)
 				value, "pager.border.highlight");
 	}
 	if (match_glob(key, "pager.border.shadow")) {
-		theme->pager_highlight =
+		theme->pager_shadow =
 			get_int_if_positive(
 				value, "pager.border.shadow");
 	}

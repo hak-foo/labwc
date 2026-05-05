@@ -267,23 +267,30 @@ void pager_update(void) {
 						.height = height,
 						};
 					
+					/*
 					double dashes[] = {1.0};
 					if (view->minimized) {
 						cairo_set_dash(cairo, dashes, 1, 0);
 					} else {
 						cairo_set_dash(cairo, dashes, 0, 0);
 					}
+					*/
 					if (view->shaded) {
 						border_fbox.height = 1;
 					}
 					set_cairo_color(cairo, theme->pager_color_window);
 					cairo_rectangle(cairo, border_fbox.x, border_fbox.y, border_fbox.width, border_fbox.height);
 					cairo_fill(cairo);
+					cairo_borders(cairo, border_fbox.x, border_fbox.y, border_fbox.width, border_fbox.height,
+						1, 128, 64, view->minimized ? BORDER_INSET : BORDER_SINGLE,
+						1, theme->pager_color_window);
 					
+			
 					
 					set_cairo_color(cairo, theme->osd_label_text_color);
+					/*
 					draw_cairo_border(cairo, border_fbox, 2);
-					
+					*/
 					if (border_fbox.height >= font_h + 6) {
 						
 						PangoLayout *layout = pango_cairo_create_layout(cairo);
@@ -302,12 +309,14 @@ void pager_update(void) {
 
 						g_object_unref(layout);
 					}
-					
 				}
 			}
 			wscount++;
 		}
-
+		cairo_borders(cairo, 0, 0, pagerwidth, totalPagerheight, theme->pager_border_width,
+					theme->pager_highlight, theme->pager_shadow,
+					theme->pager_border_type, theme->pager_bevel_width,
+					theme->pager_color_border);
 		surface = cairo_get_target(cairo);
 		cairo_surface_flush(surface);
 		cairo_destroy(cairo);
@@ -330,7 +339,7 @@ void pager_update(void) {
 }
 
 
-static void
+void
 cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
 			int shadow, enum border_type border_type, int bevel_width, float color[])
 {
