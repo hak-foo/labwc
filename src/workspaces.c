@@ -289,31 +289,34 @@ void pager_update(void) {
 						.width = width,
 						.height = height,
 						};
-					
-					/*
-					double dashes[] = {1.0};
-					if (view->minimized) {
-						cairo_set_dash(cairo, dashes, 1, 0);
-					} else {
-						cairo_set_dash(cairo, dashes, 0, 0);
-					}
-					*/
+
 					if (view->shaded) {
 						border_fbox.height = 1;
 					}
-					set_cairo_color(cairo, theme->pager_color_window);
+					if (view->minimized) {
+						set_cairo_color(cairo, theme->pager_color_minimized_window);
+					} else {
+						set_cairo_color(cairo, theme->pager_color_window);
+					}
 					cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
 					cairo_fill(cairo);
-					cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,  theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
-						2, theme->pager_highlight, theme->pager_shadow, view->minimized ? BORDER_INSET : BORDER_SINGLE,
-						1, theme->pager_color_window);
+					if (view->minimized) {
+						cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
+							theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
+							theme->pager_minimized_window_border_width, theme->pager_minimized_window_highlight,
+							theme->pager_minimized_window_shadow, theme->pager_minimized_window_border_type,
+							theme->pager_minimized_window_bevel_width, theme->pager_color_minimized_window);
+					} else {
+						cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
+							theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
+							theme->pager_window_border_width, theme->pager_window_highlight,
+							theme->pager_window_shadow, theme->pager_window_border_type,
+							theme->pager_window_bevel_width, theme->pager_color_window);
 					
 			
-					
+					}
 					set_cairo_color(cairo, theme->osd_label_text_color);
-					/*
-					draw_cairo_border(cairo, border_fbox, 2);
-					*/
+					
 					if (border_fbox.height >= font_h + 6) {
 						
 						PangoLayout *layout = pango_cairo_create_layout(cairo);
@@ -321,9 +324,15 @@ void pager_update(void) {
 						pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 						int req_width = font_width(&rc.font_pager, view->title);
 						PangoFontDescription *desc = font_to_pango_desc(&rc.font_pager);
-
-						req_width = MIN(req_width, border_fbox.width-6);
-						cairo_move_to(cairo,theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2, theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
+						if (view->minimized) {
+							req_width = MIN(req_width,
+								border_fbox.width-2*theme->pager_minimized_window_border_width -2);
+						} else {
+							req_width = MIN(req_width, border_fbox.width-2*theme->pager_window_border_width -2);
+						}
+						cairo_move_to(cairo,
+							theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2,
+							theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
 						pango_layout_set_font_description(layout, desc);
 						pango_layout_set_width(layout, req_width * PANGO_SCALE);
 						pango_font_description_free(desc);

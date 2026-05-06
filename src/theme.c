@@ -813,12 +813,23 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#808080", theme->pager_color_active);
 	parse_hexstr("#404040", theme->pager_color_inactive);
 	parse_hexstr("#c4c4c4", theme->pager_color_window);
+	parse_hexstr("#c4c4c4", theme->pager_color_minimized_window);
 	theme->pager_color_border[0] = FLT_MIN;
 	theme->pager_border_type = BORDER_NONE;
 	theme->pager_border_width = 0;
 	theme->pager_bevel_width = 0;
 	theme->pager_highlight = 128;
 	theme->pager_shadow = 64;
+	theme->pager_window_border_type = BORDER_NONE;
+	theme->pager_window_border_width = 0;
+	theme->pager_window_bevel_width = 0;
+	theme->pager_window_highlight = 128;
+	theme->pager_window_shadow = 64;
+	theme->pager_minimized_window_border_type = BORDER_NONE;
+	theme->pager_minimized_window_border_width = 0;
+	theme->pager_minimized_window_bevel_width = 0;
+	theme->pager_minimized_window_highlight = 128;
+	theme->pager_minimized_window_shadow = 64;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -1485,8 +1496,11 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "pager.inactive")) {
 		parse_color(value, theme->pager_color_inactive);
 	}
-	if (match_glob(key, "pager.window")) {
+	if (match_glob(key, "pager.window.color")) {
 		parse_color(value, theme->pager_color_window);
+	}
+	if (match_glob(key, "pager.minimized.color")) {
+		parse_color(value, theme->pager_color_minimized_window);
 	}
 	if (match_glob(key, "pager.border.color")) {
 		parse_color(value, theme->pager_color_border);
@@ -1513,6 +1527,55 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "pager.border") && parse_border_type(value)) {
 		theme->pager_border_type = parse_border_type(value);
+	}
+	
+	if (match_glob(key, "pager.window.border-width")) {
+		theme->pager_window_border_width =
+			get_int_if_positive(
+				value, "pager.window.border-width");
+	}
+	if (match_glob(key, "pager.window.bevel-width")) {
+		theme->pager_window_bevel_width =
+			get_int_if_positive(
+				value, "pager.window.bevel-width");
+	}
+	if (match_glob(key, "pager.window.highlight")) {
+		theme->pager_window_highlight =
+			get_int_if_positive(
+				value, "pager.window.highlight");
+	}
+	if (match_glob(key, "pager.window.shadow")) {
+		theme->pager_window_shadow =
+			get_int_if_positive(
+				value, "pager.window.shadow");
+	}
+	if (match_glob(key, "pager.window") && parse_border_type(value)) {
+		theme->pager_window_border_type = parse_border_type(value);
+	}
+	
+	
+	if (match_glob(key, "pager.minimized.border-width")) {
+		theme->pager_minimized_window_border_width =
+			get_int_if_positive(
+				value, "pager.minimized.border-width");
+	}
+	if (match_glob(key, "pager.minimized.bevel-width")) {
+		theme->pager_minimized_window_bevel_width =
+			get_int_if_positive(
+				value, "pager.minimized.bevel-width");
+	}
+	if (match_glob(key, "pager.minimized.highlight")) {
+		theme->pager_minimized_window_highlight =
+			get_int_if_positive(
+				value, "pager.minimized.highlight");
+	}
+	if (match_glob(key, "pager.minimized.shadow")) {
+		theme->pager_minimized_window_shadow =
+			get_int_if_positive(
+				value, "pager.minimized.shadow");
+	}
+	if (match_glob(key, "pager.minimized") && parse_border_type(value)) {
+		theme->pager_minimized_window_border_type = parse_border_type(value);
 	}
 	
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
