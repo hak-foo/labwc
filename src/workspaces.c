@@ -282,7 +282,11 @@ void pager_update(void) {
 						width += wx;
 					}
 					wx = MAX(0, wx);
+					// Crop to current frame
 					height = MIN(height, (wscount+1) * pagerheight - wy);
+					// Crop to bottom edge for odd sizes where the last frame is marginally smaller
+					height = MIN(height, (totalPagerheight-1 - wy));
+					
 					struct wlr_fbox border_fbox = {
 						.x = wx,
 						.y = wy,
