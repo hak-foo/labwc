@@ -206,12 +206,25 @@ struct theme {
 	float pager_color_active[4];
 	float pager_color_inactive[4];
 	float pager_color_window[4];
-	int pager_border_width;
+	float pager_color_minimized_window[4];
 	float pager_color_border[4];
+	int pager_border_width;
 	enum border_type pager_border_type;
 	int pager_bevel_width;
 	int pager_highlight;
 	int pager_shadow;
+	
+	int pager_window_border_width;
+	enum border_type pager_window_border_type;
+	int pager_window_bevel_width;
+	int pager_window_highlight;
+	int pager_window_shadow;
+
+	int pager_minimized_window_border_width;
+	enum border_type pager_minimized_window_border_type;
+	int pager_minimized_window_bevel_width;
+	int pager_minimized_window_highlight;
+	int pager_minimized_window_shadow;
 
 	struct window_switcher_classic_theme {
 		int width;
