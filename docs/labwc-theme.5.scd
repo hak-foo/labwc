@@ -694,9 +694,48 @@ all are supported.
 
 *pager.inactive*
 	Color of the inactive pager workspace(s). Default is #404040.
-	
-*pager.window*
+
+*pager.window*  (Raised | Sunken | DoubleRaised | DoubleSunken | Flat | None)
+	Beveled texture applied to normal window models in the pager.  Default is None
+
+*pager.window.color*
 	Color of the window models on the pager. Default is #c4c4c4.
+
+*pager.window.border-width*
+	Width of the border applied to window models.  Default is 0.
+
+*pager.window.bevel-width*
+	Width of the sub-bevel applied to window models where the texture is *DoubleRaised*
+	or *DoubleSunken*.  Default is 0.
+
+*pager.window.highlight*
+	The brightness factor applied to the raised bevels of the window models.
+	Default is 128.
+
+*pager.window.shadow*
+	The brightness factor applied to the sunken bevels of the window models.
+	Default is 64.
+
+*pager.minimized*  (Raised | Sunken | DoubleRaised | DoubleSunken | Flat | None)
+	Beveled texture applied to minimized window models in the pager.  Default is None.
+
+*pager.minimized.color*
+	Color of the minimized window models on the pager. Default is #c4c4c4.
+
+*pager.minimized.border-width*
+	Width of the border applied to minimized window models.  Default is 0.
+
+*pager.minimized.bevel-width*
+	Width of the sub-bevel applied to minimized
+	window models where the texture is *DoubleRaised* or *DoubleSunken*.  Default is 0.
+
+*pager.minimized.highlight*
+	The brightness factor applied to the raised bevels of minimized window models.
+	Default is 128.
+
+*pager.minimized.shadow*
+	The brightness factor applied to the sunken bevels of minimized window models.
+	Default is 64.
 
 # BUTTONS
 

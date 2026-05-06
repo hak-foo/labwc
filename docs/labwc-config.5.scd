@@ -648,6 +648,7 @@ extending outward from the snapped edge.
 	- MenuHeader - menu title
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
+	- Pager - window models in the pager.
 	If no place attribute is provided, the setting will be applied to all
 	places.
 
