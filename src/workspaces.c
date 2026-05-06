@@ -70,7 +70,7 @@ struct view * find_pager_window(float sx, float sy)
 {
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
 	int totalPagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
-	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	int pagerheight = ceil((float)totalPagerheight / wl_list_length(&rc.workspace_config.workspaces));
 
 	struct wlr_box overallBox = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
@@ -106,7 +106,7 @@ struct view * find_pager_window(float sx, float sy)
 void process_pager_move(float sx, float sy, struct view *found_view) {
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
 	int totalPagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
-	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	int pagerheight = ceil((float)totalPagerheight / wl_list_length(&rc.workspace_config.workspaces));
 	
 	struct wlr_box overallBox = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
@@ -187,7 +187,7 @@ void process_pager_press(float sx, float sy)
 		pager_update();
 	} else {
 		int totalPagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
-		int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+		int pagerheight = ceil((float)totalPagerheight / wl_list_length(&rc.workspace_config.workspaces));
 		int wscount = 0;
 		int target_workspace = sy/pagerheight;
 		
@@ -238,7 +238,7 @@ void pager_update(void) {
 	int screenheight = overallBox.height - overallBox.y;
 	
 	// Divide pager among workspaces vertically
-	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
+	int pagerheight = ceil((float)totalPagerheight / wl_list_length(&rc.workspace_config.workspaces));
 	
 	int font_h = font_height(&rc.font_pager);
 	
