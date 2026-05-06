@@ -69,11 +69,10 @@ parse_workspace_index(const char *name)
 
 struct view * find_pager_window(float sx, float sy)
 {
-
-	int pagerwidth = rc.pager_width;
-	int totalPagerheight = rc.pager_height;
+	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
+	int totalPagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
-	
+
 	struct wlr_box overallBox = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
 		NULL, &overallBox);
