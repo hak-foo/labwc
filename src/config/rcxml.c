@@ -49,6 +49,7 @@ enum font_place {
 	FONT_PLACE_MENUHEADER,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
+	FONT_PLACE_PAGER
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
@@ -999,6 +1000,8 @@ enum_font_place(const char *place)
 	} else if (!strcasecmp(place, "OnScreenDisplay")
 			|| !strcasecmp(place, "OSD")) {
 		return FONT_PLACE_OSD;
+	} else if (!strcasecmp(place, "Pager")) {
+		return FONT_PLACE_PAGER;
 	}
 	return FONT_PLACE_UNKNOWN;
 }
@@ -1041,6 +1044,9 @@ fill_font(xmlNode *node)
 			break;
 		case FONT_PLACE_OSD:
 			set_font_attr(&rc.font_osd, key, content);
+			break;
+		case FONT_PLACE_PAGER:
+			set_font_attr(&rc.font_pager, key, content);
 			break;
 
 			/* TODO: implement for all font places */
@@ -1553,6 +1559,7 @@ rcxml_init(void)
 	init_font_defaults(&rc.font_menuheader);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
+	init_font_defaults(&rc.font_pager);
 
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
@@ -1865,6 +1872,9 @@ post_processing(void)
 	if (!rc.font_osd.name) {
 		rc.font_osd.name = xstrdup("sans");
 	}
+	if (!rc.font_pager.name) {
+		rc.font_pager.name = xstrdup("sans");
+	}
 	if (!libinput_category_get_default()) {
 		/* So we set default values of <tap> and <scrollFactor> */
 		struct libinput_category *l = libinput_category_create();
@@ -2068,6 +2078,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
+	zfree(rc.font_pager.name);
 	zfree(rc.prompt_command);
 	zfree(rc.theme_name);
 	zfree(rc.icon_theme_name);

@@ -242,7 +242,7 @@ void pager_update(void) {
 	// Divide pager among workspaces vertically
 	int pagerheight = totalPagerheight / wl_list_length(&rc.workspace_config.workspaces);
 	
-	int font_h = font_height(&rc.font_osd);
+	int font_h = font_height(&rc.font_pager);
 	
 	wl_list_for_each(output, &server.outputs, link) {
 		if (!output_is_usable(output)) {
@@ -320,8 +320,8 @@ void pager_update(void) {
 						PangoLayout *layout = pango_cairo_create_layout(cairo);
 						pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 						pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
-						int req_width = font_width(&rc.font_osd, view->title);
-						PangoFontDescription *desc = font_to_pango_desc(&rc.font_osd);
+						int req_width = font_width(&rc.font_pager, view->title);
+						PangoFontDescription *desc = font_to_pango_desc(&rc.font_pager);
 
 						req_width = MIN(req_width, border_fbox.width-6);
 						cairo_move_to(cairo,theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2, theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
