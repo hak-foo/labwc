@@ -163,4 +163,7 @@ void cycle_osd_scroll_update(struct cycle_osd_output *osd_output);
 extern struct cycle_osd_impl cycle_osd_classic_impl;
 extern struct cycle_osd_impl cycle_osd_thumbnail_impl;
 
+struct wlr_buffer *
+render_thumb(struct output *output, struct view *view);
+	
 #endif // LABWC_CYCLE_H

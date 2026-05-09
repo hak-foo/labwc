@@ -26,6 +26,7 @@
 #include "view.h"
 #include "regions.h"
 #include "node.h"
+#include "cycle.h"
 
 #define EXT_WORKSPACES_VERSION 1
 
@@ -253,7 +254,7 @@ void pager_update(void) {
 			wlr_log(WLR_ERROR, "Failed to allocate buffer for pager");
 			continue;
 		}
-
+		
 		cairo_t *cairo;
 		cairo_surface_t *surface;
 		cairo = cairo_create(buffer->surface);
@@ -293,57 +294,38 @@ void pager_update(void) {
 						.height = height,
 						};
 
-					if (view->shaded) {
-						border_fbox.height = 1;
-					}
-					if (view->minimized) {
-						set_cairo_color(cairo, theme->pager_color_minimized_window);
-					} else {
-						set_cairo_color(cairo, theme->pager_color_window);
-					}
-					cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
-					cairo_fill(cairo);
-					if (view->minimized) {
-						cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
-							theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
-							theme->pager_minimized_window_border_width, theme->pager_minimized_window_highlight,
-							theme->pager_minimized_window_shadow, theme->pager_minimized_window_border_type,
-							theme->pager_minimized_window_bevel_width, theme->pager_color_minimized_window);
-					} else {
-						cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
-							theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
-							theme->pager_window_border_width, theme->pager_window_highlight,
-							theme->pager_window_shadow, theme->pager_window_border_type,
-							theme->pager_window_bevel_width, theme->pager_color_window);
-					}
-
 					
-					if (border_fbox.height >= font_h + 6) {
-						PangoLayout *layout = pango_cairo_create_layout(cairo);
-						pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
-						pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
-						int req_width = font_width(&rc.font_pager, view->title);
-						PangoFontDescription *desc = font_to_pango_desc(&rc.font_pager);
-						if (view->minimized) {
-							set_cairo_color(cairo, theme->pager_color_minimized_window_title);
-					
-							req_width = MIN(req_width,
-								border_fbox.width-2*theme->pager_minimized_window_border_width -2);
-						} else {
-							set_cairo_color(cairo, theme->pager_color_window_title);
-					
-							req_width = MIN(req_width, border_fbox.width-2*theme->pager_window_border_width -2);
+					if(view->current.width > 0 &&  view->current.height > 0 && border_fbox.width >0 && border_fbox.height > 0) {
+						struct wlr_buffer *thumb_buffer = render_thumb(output, view);
+						printf("At 300 -%lx\n", thumb_buffer);fflush(stdout);
+						struct wlr_texture *thumb_texture = wlr_texture_from_buffer(server.renderer, thumb_buffer);
+						printf("At 302 - %lx\n", thumb_texture);fflush(stdout);
+						if (thumb_texture) {
+							char  *pixel_data = malloc(10000000);
+							
+							struct wlr_texture_read_pixels_options options = {
+								.data = pixel_data,
+								.stride = 4*view->current.width,
+								.dst_x = 0,
+								.dst_y = 0,
+								.format=wlr_texture_preferred_read_format(thumb_texture)
+							};
+						
+							wlr_texture_read_pixels(thumb_texture, &options);
+							if (pixel_data) {
+								printf("At 316, %lx\n", pixel_data);
+								cairo_surface_t *thumb_surface =cairo_image_surface_create_for_data(
+								pixel_data, WL_SHM_FORMAT_ARGB8888, view->current.width, view->current.height, 4*view->current.width);
+								printf("At 318, %lx\n", thumb_surface);
+								cairo_surface_set_device_scale(thumb_surface, (double)view->current.width/border_fbox.width, (double)view->current.height/border_fbox.height);
+								cairo_set_source_surface(cairo, thumb_surface, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y);
+								
+								cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
+								cairo_fill(cairo);
+								free(pixel_data);	
+							}
+							
 						}
-						cairo_move_to(cairo,
-						theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2,
-						theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
-						pango_layout_set_font_description(layout, desc);
-						pango_layout_set_width(layout, req_width * PANGO_SCALE);
-						pango_font_description_free(desc);
-						pango_layout_set_text(layout, view->title, -1);
-						pango_cairo_show_layout(cairo, layout);
-
-						g_object_unref(layout);
 					}
 				}
 			}
