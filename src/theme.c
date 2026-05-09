@@ -814,6 +814,8 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#404040", theme->pager_color_inactive);
 	parse_hexstr("#c4c4c4", theme->pager_color_window);
 	parse_hexstr("#c4c4c4", theme->pager_color_minimized_window);
+	parse_hexstr("#000000", theme->pager_color_window_title);
+	parse_hexstr("#000000", theme->pager_color_minimized_window_title);
 	theme->pager_color_border[0] = FLT_MIN;
 	theme->pager_border_type = BORDER_NONE;
 	theme->pager_border_width = 0;
@@ -1501,6 +1503,12 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "pager.minimized.color")) {
 		parse_color(value, theme->pager_color_minimized_window);
+	}
+	if (match_glob(key, "pager.minimized.title")) {
+		parse_color(value, theme->pager_color_minimized_window_title);
+	}
+	if (match_glob(key, "pager.window.title")) {
+		parse_color(value, theme->pager_color_window_title);
 	}
 	if (match_glob(key, "pager.border.color")) {
 		parse_color(value, theme->pager_color_border);
