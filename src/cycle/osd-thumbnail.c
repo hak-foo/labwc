@@ -76,7 +76,7 @@ render_node(struct wlr_render_pass *pass,
 	}
 }
 
-static struct wlr_buffer *
+struct wlr_buffer *
 render_thumb(struct output *output, struct view *view)
 {
 	if (!view->content_tree) {
