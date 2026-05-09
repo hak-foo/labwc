@@ -207,6 +207,8 @@ struct theme {
 	float pager_color_inactive[4];
 	float pager_color_window[4];
 	float pager_color_minimized_window[4];
+	float pager_color_window_title[4];
+	float pager_color_minimized_window_title[4];
 	float pager_color_border[4];
 	int pager_border_width;
 	enum border_type pager_border_type;

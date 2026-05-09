@@ -315,27 +315,28 @@ void pager_update(void) {
 							theme->pager_window_border_width, theme->pager_window_highlight,
 							theme->pager_window_shadow, theme->pager_window_border_type,
 							theme->pager_window_bevel_width, theme->pager_color_window);
-					
-			
 					}
-					set_cairo_color(cairo, theme->osd_label_text_color);
+
 					
 					if (border_fbox.height >= font_h + 6) {
-						
 						PangoLayout *layout = pango_cairo_create_layout(cairo);
 						pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 						pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 						int req_width = font_width(&rc.font_pager, view->title);
 						PangoFontDescription *desc = font_to_pango_desc(&rc.font_pager);
 						if (view->minimized) {
+							set_cairo_color(cairo, theme->pager_color_minimized_window_title);
+					
 							req_width = MIN(req_width,
 								border_fbox.width-2*theme->pager_minimized_window_border_width -2);
 						} else {
+							set_cairo_color(cairo, theme->pager_color_window_title);
+					
 							req_width = MIN(req_width, border_fbox.width-2*theme->pager_window_border_width -2);
 						}
 						cairo_move_to(cairo,
-							theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2,
-							theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
+						theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2,
+						theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
 						pango_layout_set_font_description(layout, desc);
 						pango_layout_set_width(layout, req_width * PANGO_SCALE);
 						pango_font_description_free(desc);

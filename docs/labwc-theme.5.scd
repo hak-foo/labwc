@@ -737,6 +737,13 @@ all are supported.
 	The brightness factor applied to the sunken bevels of minimized window models.
 	Default is 64.
 
+*pager.window.title*
+	Colour of the title text on normal window models.  Default is #000000.
+
+*pager.minimized.title*
+	Colour of the title text on minimized window models.  Default is #000000.
+	
+
 # BUTTONS
 
 The images used for the titlebar icons are referred to as buttons.
