@@ -743,7 +743,6 @@ server_init(void)
 #if HAVE_XWAYLAND
 	xwayland_server_init(server.compositor);
 #endif
-
 }
 
 void

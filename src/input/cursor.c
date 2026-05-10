@@ -554,7 +554,7 @@ cursor_update_common(const struct cursor_context *ctx,
 		 */
 		return;
 	}
-	
+
 	if (ctx->type == LAB_NODE_PAGER) {
 		// The pager manages its own cursor choices
 		return;
@@ -661,7 +661,6 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 			active_drag_view = NULL;
 		}
 	}
-
 
 	if (ctx.type == LAB_NODE_MENUITEM) {
 		menu_process_cursor_motion(ctx.node);
@@ -1178,7 +1177,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		process_pager_press(ctx.sx, ctx.sy);
 		return false;
 	}
-	
+
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/*
 		 * If menu was already opened on press, set a very small value
@@ -1246,7 +1245,7 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
 	cursor_context_save(&seat->pressed, NULL);
-	
+
 	if (ctx.type == LAB_NODE_PAGER) {
 		process_pager_release(ctx.sx, ctx.sy);
 		return false;

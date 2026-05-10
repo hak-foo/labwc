@@ -1395,7 +1395,9 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "height.pager")) {
 		rc.pager_height = atoi(content);
 	} else if (!strcasecmp(nodename, "thumbnail.pager")) {
-		/* <pager enabled="true" x="1000" y="70" width="300" height="200" thumbnail="true"/> */
+		/* <pager enabled="true" x="1000" y="70" width="300" height="200"
+		 * thumbnail="true"/>
+		 */
 		set_bool(content, &rc.pager_thumbnail);
 	}
 
@@ -1549,7 +1551,7 @@ rcxml_init(void)
 	rc.mag_scale = 2.0;
 	rc.mag_increment = 0.2;
 	rc.mag_filter = true;
-	
+
 	rc.pager_enabled = false;
 	rc.pager_x = 0;
 	rc.pager_y = 0;

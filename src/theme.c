@@ -1536,7 +1536,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "pager.border") && parse_border_type(value)) {
 		theme->pager_border_type = parse_border_type(value);
 	}
-	
+
 	if (match_glob(key, "pager.window.border-width")) {
 		theme->pager_window_border_width =
 			get_int_if_positive(
@@ -1560,8 +1560,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "pager.window") && parse_border_type(value)) {
 		theme->pager_window_border_type = parse_border_type(value);
 	}
-	
-	
+
 	if (match_glob(key, "pager.minimized.border-width")) {
 		theme->pager_minimized_window_border_width =
 			get_int_if_positive(
@@ -1585,7 +1584,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "pager.minimized") && parse_border_type(value)) {
 		theme->pager_minimized_window_border_type = parse_border_type(value);
 	}
-	
+
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {
 		set_bool(value, &theme->snapping_overlay_region.bg_enabled);
 	}
