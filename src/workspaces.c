@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <drm_fourcc.h>
 #include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/render/allocator.h>
@@ -379,7 +380,7 @@ void pager_update(void) {
 								.stride = 4*border_fbox.width,
 								.dst_x = 0,
 								.dst_y = 0,
-								.format=wlr_texture_preferred_read_format(thumb_texture)
+								.format=DRM_FORMAT_ARGB8888
 							};
 						
 							wlr_texture_read_pixels(thumb_texture, &options);	
