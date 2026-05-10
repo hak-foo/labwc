@@ -1480,9 +1480,11 @@ situation.
 ## PAGER
 
 ```
-  <pager enabled="true" x="700" y="50" width="300" height="300" />
+  <pager enabled="true" x="700" y="50" width="300" height="300" thumbnail="true"/>
 ```
 	*enabled* determines whether or not to show the minimap pager.  Workspaces are shown verticaly stacked.  Windows can be clicked to raise, dragged to move.  Clicking the empty area of the pager will switch to the relevant workspace.
+	
+	*thumbnail* will ignore the styling rules in the theme and render minature versions of the windows
 	
 	*x* and *y* are the position of the top corner of the pager
 	

@@ -223,6 +223,7 @@ struct rcxml {
 	bool mag_filter;
 	
 	bool pager_enabled;
+	bool pager_thumbnail;
 	int pager_x, pager_y, pager_width, pager_height;
 };
 

@@ -10,6 +10,8 @@
 #include <strings.h>
 #include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/render/allocator.h>
+#include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_scene.h>
 #include "buffer.h"
 #include "common/font.h"
@@ -34,6 +36,7 @@
 float pager_drag_start_x, pager_drag_start_y;
 struct view *active_drag_view;
 
+unsigned char *pixel_data;
 /* Internal helpers */
 static size_t
 parse_workspace_index(const char *name)
@@ -206,6 +209,75 @@ void process_pager_press(float sx, float sy)
 	active_drag_view = found_view;
 }
 
+static void
+render_node_sized(struct wlr_render_pass *pass,
+		struct wlr_scene_node *node, int x, int y, float sx, float sy)
+{
+	switch (node->type) {
+	case WLR_SCENE_NODE_TREE: {
+		struct wlr_scene_tree *tree = wlr_scene_tree_from_node(node);
+		struct wlr_scene_node *child;
+		wl_list_for_each(child, &tree->children, link) {
+			render_node_sized(pass, child, sx*(x + node->x), sy*(y + node->y), sx, sy);
+		}
+		break;
+	}
+	case WLR_SCENE_NODE_BUFFER: {
+		struct wlr_scene_buffer *scene_buffer =
+			wlr_scene_buffer_from_node(node);
+		if (!scene_buffer->buffer) {
+			break;
+		}
+		struct wlr_texture *texture = wlr_texture_from_buffer(
+			server.renderer, scene_buffer->buffer);
+		if (!texture) {
+			break;
+		}
+		wlr_render_pass_add_texture(pass, &(struct wlr_render_texture_options){
+			.texture = texture,
+			.src_box = scene_buffer->src_box,
+			.dst_box = {
+				.x = x * sx,
+				.y = y * sy,
+				.width = scene_buffer->dst_width*sx,
+				.height = scene_buffer->dst_height*sy
+			},
+			.transform = scene_buffer->transform,
+		});
+		wlr_texture_destroy(texture);
+		break;
+	}
+	case WLR_SCENE_NODE_RECT:
+		/* should be unreached */
+		wlr_log(WLR_ERROR, "ignoring rect");
+		break;
+	}
+}
+
+static struct wlr_buffer *
+render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
+{
+	if (!view->content_tree) {
+		/*
+		 * Defensive. Could possibly occur if view was unmapped
+		 * with OSD already displayed.
+		 */
+		return NULL;
+	}
+	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server.allocator,
+		sx*view->current.width, sy*view->current.height,
+		&output->wlr_output->swapchain->format);
+	struct wlr_render_pass *pass = wlr_renderer_begin_buffer_pass(
+		server.renderer, buffer, NULL);
+	render_node_sized(pass, &view->content_tree->node, 0, 0, sx, sy);
+	if (!wlr_render_pass_submit(pass)) {
+		wlr_log(WLR_ERROR, "failed to submit render pass");
+		wlr_buffer_drop(buffer);
+		return NULL;
+	}
+	return buffer;
+}
+
 void pager_update(void) {
 	struct output *output;
 	if (!rc.pager_enabled) {
@@ -296,36 +368,81 @@ void pager_update(void) {
 						};
 
 					
-					if(view->current.width > 0 &&  view->current.height > 0 && border_fbox.width >0 && border_fbox.height > 0) {
-						struct wlr_buffer *thumb_buffer = render_thumb(output, view);
-						printf("At 300 -%lx\n", thumb_buffer);fflush(stdout);
+					if(rc.pager_thumbnail && view->current.width > 0 &&  view->current.height > 0 && border_fbox.width >0 && border_fbox.height > 0) {
+						struct wlr_buffer *thumb_buffer = render_thumb_sized(output, view, border_fbox.width/view->current.width, border_fbox.height/view->current.height);
 						struct wlr_texture *thumb_texture = wlr_texture_from_buffer(server.renderer, thumb_buffer);
-						printf("At 302 - %lx\n", thumb_texture);fflush(stdout);
+						if (!pixel_data) {
+							pixel_data = malloc(rc.pager_width * rc.pager_height * 4);
+						}
 						if (thumb_texture) {
-							char  *pixel_data = malloc(10000000);
-							
 							struct wlr_texture_read_pixels_options options = {
 								.data = pixel_data,
-								.stride = 4*view->current.width,
+								.stride = 4*border_fbox.width,
 								.dst_x = 0,
 								.dst_y = 0,
 								.format=wlr_texture_preferred_read_format(thumb_texture)
 							};
 						
-							wlr_texture_read_pixels(thumb_texture, &options);
-							if (pixel_data) {
-								printf("At 316, %lx\n", pixel_data);
-								cairo_surface_t *thumb_surface =cairo_image_surface_create_for_data(
-								pixel_data, WL_SHM_FORMAT_ARGB8888, view->current.width, view->current.height, 4*view->current.width);
-								printf("At 318, %lx\n", thumb_surface);
-								cairo_surface_set_device_scale(thumb_surface, (double)view->current.width/border_fbox.width, (double)view->current.height/border_fbox.height);
-								cairo_set_source_surface(cairo, thumb_surface, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y);
-								
-								cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
-								cairo_fill(cairo);
-								free(pixel_data);	
+							wlr_texture_read_pixels(thumb_texture, &options);	
+							cairo_surface_t *thumb_surface =cairo_image_surface_create_for_data(
+							pixel_data, CAIRO_FORMAT_ARGB32, border_fbox.width, border_fbox.height, 4*border_fbox.width);
+							cairo_set_source_surface(cairo, thumb_surface, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y);
+							cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
+							cairo_fill(cairo);
+							cairo_surface_destroy(thumb_surface);
+							wlr_texture_destroy(thumb_texture);	
+						}
+						wlr_buffer_drop(thumb_buffer);
+					} else {
+						if (view->shaded) {
+							border_fbox.height = 1;
+						}
+						if (view->minimized) {
+							set_cairo_color(cairo, theme->pager_color_minimized_window);
+						} else {
+							set_cairo_color(cairo, theme->pager_color_window);
+						}
+						cairo_rectangle(cairo, theme->pager_border_width+border_fbox.x, theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height);
+						cairo_fill(cairo);
+						if (view->minimized) {
+							cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
+								theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
+								theme->pager_minimized_window_border_width, theme->pager_minimized_window_highlight,
+								theme->pager_minimized_window_shadow, theme->pager_minimized_window_border_type,
+								theme->pager_minimized_window_bevel_width, theme->pager_color_minimized_window);
+						} else {
+							cairo_borders(cairo, theme->pager_border_width+ border_fbox.x,
+								theme->pager_border_width+border_fbox.y, border_fbox.width, border_fbox.height,
+								theme->pager_window_border_width, theme->pager_window_highlight,
+								theme->pager_window_shadow, theme->pager_window_border_type,
+								theme->pager_window_bevel_width, theme->pager_color_window);
+						}
+
+
+						if (border_fbox.height >= font_h + 6) {
+							PangoLayout *layout = pango_cairo_create_layout(cairo);
+							pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
+							pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+							int req_width = font_width(&rc.font_pager, view->title);
+							PangoFontDescription *desc = font_to_pango_desc(&rc.font_pager);
+							if (view->minimized) {
+								set_cairo_color(cairo, theme->pager_color_minimized_window_title);
+
+								req_width = MIN(req_width,
+									border_fbox.width-2*theme->pager_minimized_window_border_width -2);
+							} else {
+								set_cairo_color(cairo, theme->pager_color_window_title);
+								req_width = MIN(req_width, border_fbox.width-2*theme->pager_window_border_width -2);
 							}
-							
+							cairo_move_to(cairo,
+								theme->pager_border_width+border_fbox.x+ (border_fbox.width - req_width) / 2,
+								theme->pager_border_width+border_fbox.y+(border_fbox.height - font_h) / 2);
+								pango_layout_set_font_description(layout, desc);
+								pango_layout_set_width(layout, req_width * PANGO_SCALE);
+								pango_font_description_free(desc);
+								pango_layout_set_text(layout, view->title, -1);
+								pango_cairo_show_layout(cairo, layout);
+								g_object_unref(layout);
 						}
 					}
 				}
@@ -347,7 +464,7 @@ void pager_update(void) {
 		}
 		wlr_scene_node_set_enabled(&output->pager_osd->node, true);
 
-		
+
 		wlr_scene_node_set_position(&output->pager_osd->node, x, y);
 		wlr_scene_buffer_set_buffer(output->pager_osd, &buffer->base);
 		wlr_scene_buffer_set_dest_size(output->pager_osd,
