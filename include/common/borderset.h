@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #include <stdint.h>
 #include <wlr/types/wlr_scene.h>
+#include <cairo.h>
 
 #ifndef LABWC_BORDERSET_H
 #define LABWC_BORDERSET_H
@@ -61,5 +62,9 @@ void renderBufferset(struct bufferset *bufferset, int width, int height, int y);
 void renderBuffersetXY(struct bufferset *bufferset, int width, int height, int x, int y);
 
 void clearborder_cache(struct borderset *borderset);
+
+void
+cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
+			int shadow, enum border_type border_type, int bevel_width, float color[]);
 
 #endif /* LABWC_BORDERSET_H */

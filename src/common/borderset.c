@@ -489,3 +489,59 @@ void clearborder_cache(struct borderset *borderset)
 	wlr_buffer_drop(&borderset->br->base);
 	free(borderset);
 }
+
+void
+cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
+	int shadow, enum border_type border_type, int bevel_width, float color[])
+{
+	float r = color[0];
+	float g = color[1];
+	float b = color[2];
+	float a = color[3];
+
+	uint32_t colour32 = (uint32_t)(a*255) << 24 |
+		(uint32_t)(r*255) << 16 |
+		(uint32_t)(g*255) << 8 |
+		(uint32_t)(b*255);
+	struct borderset *renderedborders = get_borders(colour32, bw,
+		border_type, bevel_width,
+		highlight, shadow);
+
+	cairo_set_source_surface(cairo, renderedborders->top->surface, x+bw, y);
+	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+	cairo_rectangle(cairo, x+bw, y, width-bw*2, bw);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->bottom->surface,  x+bw, y+height-bw);
+	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+	cairo_rectangle(cairo, x+bw, y+height-bw, width-bw*2, bw);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->left->surface, x, y+bw);
+	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+	cairo_rectangle(cairo, x, y + bw, bw, height-bw*2);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->right->surface, x+width-bw, y+bw);
+	cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+	cairo_rectangle(cairo, x + width - bw, y + bw, bw, height-bw*2);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->tl->surface, x, y);
+	cairo_rectangle(cairo, x, y, bw, bw);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->tr->surface, x+width-bw, y);
+	cairo_rectangle(cairo, x+width - bw, y, bw, bw);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->bl->surface,
+		x, y+height - bw);
+	cairo_rectangle(cairo, x, y + height - bw, bw, bw);
+	cairo_fill(cairo);
+
+	cairo_set_source_surface(cairo, renderedborders->br->surface,
+		x+width - bw, y+height -bw);
+	cairo_rectangle(cairo, x + width - bw, y + height - bw, bw, bw);
+	cairo_fill(cairo);
+}

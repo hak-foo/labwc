@@ -34,6 +34,7 @@
 #include "translate.h"
 #include "view.h"
 #include "workspaces.h"
+#include "pager.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,

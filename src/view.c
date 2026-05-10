@@ -33,6 +33,7 @@
 #include "window-rules.h"
 #include "wlr/util/log.h"
 #include "workspaces.h"
+#include "pager.h"
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>

@@ -37,7 +37,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "xwayland.h"
-#include "workspaces.h"
+#include "pager.h"
 
 #if WLR_HAS_LIBINPUT_BACKEND
 	#include <wlr/backend/libinput.h>
