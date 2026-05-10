@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <wayland-util.h>
 #include <wayland-server-core.h>
-#include <cairo.h>
+
 
 struct seat;
 struct server;
@@ -29,19 +29,5 @@ void workspaces_osd_hide(struct seat *seat);
 struct workspace *workspaces_find(struct workspace *anchor, const char *name,
 	bool wrap);
 void workspaces_reconfigure(void);
-void pager_create(void);
-void pager_update(void);
-void process_pager_release(float sx, float sy);
-void process_pager_drag(float sx, float sy);
-void process_pager_press(float sx, float sy);
-void process_pager_move(float sx, float sy, struct view *found_view);
-struct view *find_pager_window(float sx, float sy);
-
-void
-cairo_borders(cairo_t *cairo, int x, int y, int width, int height, int bw, int highlight,
-			int shadow, enum border_type border_type, int bevel_width, float color[]);
-
-extern struct view *active_drag_view;
-
 
 #endif /* LABWC_WORKSPACES_H */
