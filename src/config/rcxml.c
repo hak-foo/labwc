@@ -1394,6 +1394,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.pager_width = atoi(content);
 	} else if (!strcasecmp(nodename, "height.pager")) {
 		rc.pager_height = atoi(content);
+	} else if (!strcasecmp(nodename, "thumbnail.pager")) {
+		/* <pager enabled="true" x="1000" y="70" width="300" height="200" thumbnail="true"/> */
+		set_bool(content, &rc.pager_thumbnail);
 	}
 
 	return false;
