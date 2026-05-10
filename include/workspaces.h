@@ -6,7 +6,6 @@
 #include <wayland-util.h>
 #include <wayland-server-core.h>
 
-
 struct seat;
 struct server;
 struct wlr_scene_tree;

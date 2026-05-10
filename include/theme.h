@@ -202,7 +202,7 @@ struct theme {
 	int osd_border_bevel_width;
 	int osd_highlight;
 	int osd_shadow;
-	
+
 	float pager_color_active[4];
 	float pager_color_inactive[4];
 	float pager_color_window[4];
@@ -215,7 +215,7 @@ struct theme {
 	int pager_bevel_width;
 	int pager_highlight;
 	int pager_shadow;
-	
+
 	int pager_window_border_width;
 	enum border_type pager_window_border_type;
 	int pager_window_bevel_width;
