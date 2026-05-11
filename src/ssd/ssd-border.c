@@ -163,9 +163,9 @@ ssd_border_update(struct ssd *ssd)
 		if (theme->window[active].border_type) {
 			// For left side
 			if (1 /*left side*/) {
-				renderBuffersetXY(subtree->textured_borders, full_width+(ssd->titlebar.height + theme->border_width),
+				renderBuffersetXY(subtree->textured_borders, full_width+(ssd->titlebar.height),
 					side_height + 2*theme->border_width,
-					-ssd->titlebar.height-theme->border_width,-theme->border_width);
+					-ssd->titlebar.height,-theme->border_width);
 			} else {
 				renderBufferset(subtree->textured_borders, full_width,
 					side_height+(ssd->titlebar.height + 2*theme->border_width),

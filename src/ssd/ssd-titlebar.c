@@ -30,6 +30,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = rc.theme;
 	int width = view->current.width;
+	int height = view->current.height;
 	int corner_width = ssd_get_corner_width();
 
 	ssd->titlebar.tree = lab_wlr_scene_tree_create(ssd->tree);
@@ -112,15 +113,28 @@ ssd_titlebar_create(struct ssd *ssd)
 				subtree->tree, theme->titlebar_height,
 				theme->window[active].titlebar_pattern);
 		}
+		
+		wlr_scene_buffer_set_transform(subtree->title->scene_buffer, 1);
 		assert(subtree->title);
 		node_descriptor_create(&subtree->title->scene_buffer->node,
 			LAB_NODE_TITLE, view, /*data*/ NULL);
 
 		/* Buttons */
-		int x = theme->window_titlebar_padding_width;
-
-		/* Center vertically within titlebar */
-		int y = (theme->titlebar_height - theme->window_button_height) / 2;
+		int x,y;
+		
+		
+		
+		if (1 /*left side*/) {
+			// Centre in titlebar
+			x = (theme->titlebar_height - theme->window_button_height) / 2;	
+			
+			y = theme->window_titlebar_padding_width;
+			
+		} else {
+			x = theme->window_titlebar_padding_width;
+			/* Center vertically within titlebar */
+			y = (theme->titlebar_height - theme->window_button_height) / 2;
+		}
 
 		wl_list_init(&subtree->buttons_left);
 		wl_list_init(&subtree->buttons_right);
@@ -129,19 +143,34 @@ ssd_titlebar_create(struct ssd *ssd)
 			enum lab_node_type type = rc.title_buttons_left[b];
 			struct lab_img **imgs =
 				theme->window[active].button_imgs[type];
-			attach_ssd_button(&subtree->buttons_left, type, parent,
-				imgs, x, y, view);
+			if (1 /*left side*/) {
+				attach_ssd_button(&subtree->buttons_left, type, parent,
+					imgs, y, x, view);
+			} else {
+				attach_ssd_button(&subtree->buttons_left, type, parent,
+					imgs, x, y, view);
+			}
 			x += theme->window_button_width + theme->window_button_spacing;
 		}
 
-		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
+		if (1 /*left side*/) {
+			x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
+		} else {
+			x = height - theme->window_titlebar_padding_width + theme->window_button_spacing;
+		}
+			
 		for (int b = rc.nr_title_buttons_right - 1; b >= 0; b--) {
 			x -= theme->window_button_width + theme->window_button_spacing;
 			enum lab_node_type type = rc.title_buttons_right[b];
 			struct lab_img **imgs =
 				theme->window[active].button_imgs[type];
-			attach_ssd_button(&subtree->buttons_right, type, parent,
-				imgs, x, y, view);
+			if (1 /*left side*/) {
+				attach_ssd_button(&subtree->buttons_right, type, parent,
+					imgs, y, x, view);
+			} else {
+				attach_ssd_button(&subtree->buttons_right, type, parent,
+					imgs, x, y, view);
+			}
 		}
 	}
 
@@ -315,6 +344,7 @@ ssd_titlebar_update(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	int width = view->current.width;
+	int height = view->current.height;
 	int corner_width = ssd_get_corner_width();
 	struct theme *theme = rc.theme;
 
@@ -367,27 +397,44 @@ ssd_titlebar_update(struct ssd *ssd)
 			MAX(width - bg_offset * 2, 0), theme->titlebar_height);
 
 		x = theme->window_titlebar_padding_width;
+		if (1/* left side */) {
+			y = -theme->titlebar_height;
+			x = bg_offset+theme->titlebar_height;
+		}
 		struct ssd_button *button;
 		int button_count = 0;
 
 		wl_list_for_each(button, &subtree->buttons_left, link) {
 			if (button->node->enabled) {
-				wlr_scene_node_set_position(button->node, x, y);
+				if (1 /* left_side*/) {
+					wlr_scene_node_set_position(button->node, y, x);
+				} else {
+					wlr_scene_node_set_position(button->node, x, y);
+				}
 				x += theme->window_button_width + theme->window_button_spacing;
 				button_count++;
 			}
 		}
 		int exclusive_x = x;
 
+		
 		x = width - corner_width;
 		wlr_scene_node_set_position(&subtree->corner_right->node,
 			x, -rc.theme->border_width);
 
-		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
+		if (1 /*left side*/) {
+			x = height + theme->window_button_width+theme->window_button_spacing;
+		} else {
+			x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
+		}
 		wl_list_for_each(button, &subtree->buttons_right, link) {
 			if (button->node->enabled) {
 				x -= theme->window_button_width + theme->window_button_spacing;
-				wlr_scene_node_set_position(button->node, x, y);
+				if (1 /*left side*/) {
+					wlr_scene_node_set_position(button->node, y, x);
+				} else {
+					wlr_scene_node_set_position(button->node, x, y);
+				}
 				button_count++;
 			}
 		}
@@ -395,6 +442,9 @@ ssd_titlebar_update(struct ssd *ssd)
 		if (theme->window[active].title_bg.border_type) {
 			int titlebar_x = 0;
 			int titlebar_width = MAX(view->current.width, 0);
+			if (1 /*left side*/) {
+				titlebar_width = MAX(view->current.height, 0);
+			}
 			if (theme->window[active].title_bg.exclusive) {
 				titlebar_x = exclusive_x+theme->window_titlebar_padding_width;
 				titlebar_width = titlebar_width -
@@ -403,8 +453,13 @@ ssd_titlebar_update(struct ssd *ssd)
 			}
 
 			if (titlebar_width > 0) {
-				renderBuffersetXY(subtree->textured_borders, titlebar_width,
-				theme->titlebar_height, titlebar_x, 0);
+				if (1 /*left side*/) {
+					renderBuffersetXY(subtree->textured_borders, theme->titlebar_height, titlebar_width,
+						-theme->titlebar_height, titlebar_x);
+				} else {
+					renderBuffersetXY(subtree->textured_borders, titlebar_width,
+						theme->titlebar_height, titlebar_x, 0);
+				}
 			}
 		}
 	}
@@ -441,7 +496,12 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 {
 	struct view *view = ssd->view;
 	struct theme *theme = rc.theme;
-	int width = view->current.width;
+	int width;
+	if (1 /*left side*/) {
+		width = view->current.height;
+	} else {
+		width = view->current.width;
+	}
 	int title_bg_width = width - offset_left - offset_right;
 
 	enum ssd_active_state active;
@@ -452,6 +512,9 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 
 		x = offset_left;
 		y = (theme->titlebar_height - title->height) / 2;
+		if (1 /*left side*/) {
+			y -= theme->titlebar_height;
+		}
 
 		if (title_bg_width <= 0) {
 			wlr_scene_node_set_enabled(&title->scene_buffer->node, false);
@@ -476,7 +539,11 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 		} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
 			/* TODO: maybe add some theme x padding here? */
 		}
-		wlr_scene_node_set_position(&title->scene_buffer->node, x, y);
+		if (1/*left side*/) {
+			wlr_scene_node_set_position(&title->scene_buffer->node, y, x);
+		} else {
+			wlr_scene_node_set_position(&title->scene_buffer->node, x, y);
+		}
 	}
 }
 
