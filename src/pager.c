@@ -37,6 +37,8 @@ struct view *active_drag_view;
 
 unsigned char *pixel_data;
 
+struct thumbnail_cache *thumb_cache;
+
 struct view *find_pager_window(float sx, float sy)
 {
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
@@ -264,6 +266,76 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 	return buffer;
 }
 
+unsigned char *get_thumbnail_cache(
+	struct output *output,
+	struct view *view,
+	struct wlr_fbox border_fbox)
+{
+	struct thumbnail_cache *pointer = thumb_cache;
+	struct thumbnail_cache *old = NULL, *next = NULL;
+	while (pointer) {
+		next = pointer->next;
+		pointer->age++;
+		// We'll drop a cached thumbnail after this many re-renderings of the pager.
+		// We could also flush after a change occured to a specific window.
+		if (pointer->age > 125) {
+			// If we're expiring the first entry
+			// update the start of the cache list for everyone
+			if (pointer == thumb_cache) {
+				thumb_cache = next;
+			}
+			// Clear old cache
+			free(pointer->thumbnail);
+			free(pointer);
+			// Skip for this use only since we just freed it
+			pointer = next;
+			continue;
+		}
+		if (pointer
+			&& pointer->creation_id == view->creation_id
+			&& pointer->width == border_fbox.width
+			&& pointer->height == border_fbox.height) {
+			return pointer->thumbnail;
+		}
+		old = pointer;
+		pointer = next;
+	}
+	struct thumbnail_cache *new_entry = malloc(sizeof(struct thumbnail_cache));
+	new_entry->creation_id = view->creation_id;
+	new_entry->age = 0;
+	new_entry->next = NULL;
+	new_entry->width = border_fbox.width;
+	new_entry->height = border_fbox.height;
+
+	struct wlr_buffer *thumb_buffer =
+		render_thumb_sized(output, view,
+			border_fbox.width /
+				view->current.width,
+			border_fbox.height /
+				view->current.height);
+	struct wlr_texture *thumb_texture =
+		wlr_texture_from_buffer(server.renderer,
+			thumb_buffer);
+	new_entry->thumbnail = malloc(4*border_fbox.width*border_fbox.height);
+	struct wlr_texture_read_pixels_options options = {
+		.data = new_entry->thumbnail,
+		.stride = 4*border_fbox.width,
+		.dst_x = 0,
+		.dst_y = 0,
+		.format = DRM_FORMAT_ARGB8888
+	};
+	wlr_texture_read_pixels(thumb_texture,
+		&options);
+	wlr_texture_destroy(thumb_texture);
+	wlr_buffer_drop(thumb_buffer);
+	if (old) {
+		old->next = new_entry;
+	} else {
+		thumb_cache = new_entry;
+	}
+	return new_entry->thumbnail;
+}
+
 void pager_update(void)
 {
 	struct output *output;
@@ -356,8 +428,6 @@ void pager_update(void)
 					// last frame is marginally smaller
 					height = MIN(height, (total_pagerheight-1 - wy));
 
-					struct wlr_texture *thumb_texture = NULL;
-					struct wlr_buffer *thumb_buffer = NULL;
 					struct wlr_fbox border_fbox = {
 						.x = wx,
 						.y = wy,
@@ -402,14 +472,6 @@ void pager_update(void)
 						theme->pager_color_minimized_window_title :
 						theme->pager_color_window_title;
 
-					// Prep the buffer we use for staging thumbnails
-					// Only allocate it once rather than allocate and free
-					// for every window.
-					if (!pixel_data && rc.pager_thumbnail) {
-						pixel_data = malloc(rc.pager_width *
-							rc.pager_height * 4);
-					}
-
 					// Shaded windows are shown as 1px high
 					if (view->shaded) {
 						border_fbox.height = 1;
@@ -422,31 +484,14 @@ void pager_update(void)
 						view->current.height > 0 &&
 						border_fbox.width > 0 &&
 						border_fbox.height > 0) {
-						thumb_buffer =
-							render_thumb_sized(output, view,
-								border_fbox.width /
-									view->current.width,
-								border_fbox.height /
-									view->current.height);
-						thumb_texture =
-							wlr_texture_from_buffer(server.renderer,
-								thumb_buffer);
+						pixel_data = get_thumbnail_cache(output, view,
+							border_fbox);
 					} else {
-						thumb_texture = NULL;
+						pixel_data = NULL;
 					}
 
 					// If we have a thumbnail, render it.
-					if (thumb_texture) {
-						struct wlr_texture_read_pixels_options options = {
-							.data = pixel_data,
-							.stride = 4*border_fbox.width,
-							.dst_x = 0,
-							.dst_y = 0,
-							.format = DRM_FORMAT_ARGB8888
-						};
-
-						wlr_texture_read_pixels(thumb_texture,
-							&options);
+					if (pixel_data) {
 						cairo_surface_t *thumb_surface =
 							cairo_image_surface_create_for_data(
 								pixel_data, CAIRO_FORMAT_ARGB32,
@@ -468,8 +513,6 @@ void pager_update(void)
 							border_fbox.height);
 						cairo_fill(cairo);
 						cairo_surface_destroy(thumb_surface);
-						wlr_texture_destroy(thumb_texture);
-						wlr_buffer_drop(thumb_buffer);
 					} else {
 						// If we're not rendering a thumbnail, use rules for
 						// box-based windows:
@@ -500,7 +543,7 @@ void pager_update(void)
 
 					// Only draw a title if the window
 					// is big enough for it and isn't a thumbnail
-					if (!thumb_texture &&
+					if (!pixel_data &&
 						border_fbox.height >= font_h + 6) {
 						PangoLayout *layout =
 							pango_cairo_create_layout(cairo);
