@@ -271,6 +271,12 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 // maybe we'll refresh slow windows not being interacted with
 void pager_flush(struct view *view)
 {
+	// Sometimes, seems like after Focus events on
+	// tray icons, view is null, so bail before trying
+	// to access it and segfaulting
+	if (!view) {
+		return;
+	}
 	struct thumbnail_cache *pointer = thumb_cache;
 	struct thumbnail_cache *old = NULL, *next = NULL;
 	while (pointer) {
