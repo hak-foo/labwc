@@ -266,6 +266,39 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 	return buffer;
 }
 
+// Flush a specific view from the cache.  This allows actual window
+// changes to reflect quickly, and a long-running cache so eventually
+// maybe we'll refresh slow windows not being interacted with
+void pager_flush(struct view *view)
+{
+	struct thumbnail_cache *pointer = thumb_cache;
+	struct thumbnail_cache *old = NULL, *next = NULL;
+	while (pointer) {
+		next = pointer->next;
+		// We'll drop a cached thumbnail after this many re-renderings of the pager.
+		// We could also flush after a change occured to a specific window.
+		if (pointer->creation_id == view->creation_id) {
+			// If we're expiring the first entry
+			// update the start of the cache list for everyone
+			if (pointer == thumb_cache) {
+				thumb_cache = next;
+			}
+			// Clear old cache
+			free(pointer->thumbnail);
+			free(pointer);
+			// Stitch the list over the removed item.
+			if (old) {
+				old->next = next;
+			}
+			// Skip for this use only since we just freed it
+			pointer = next;
+			continue;
+		}
+		old = pointer;
+		pointer = next;
+	}
+}
+
 unsigned char *get_thumbnail_cache(
 	struct output *output,
 	struct view *view,
@@ -278,7 +311,7 @@ unsigned char *get_thumbnail_cache(
 		pointer->age++;
 		// We'll drop a cached thumbnail after this many re-renderings of the pager.
 		// We could also flush after a change occured to a specific window.
-		if (pointer->age > 125) {
+		if (pointer->age > 10000) {
 			// If we're expiring the first entry
 			// update the start of the cache list for everyone
 			if (pointer == thumb_cache) {
@@ -287,6 +320,10 @@ unsigned char *get_thumbnail_cache(
 			// Clear old cache
 			free(pointer->thumbnail);
 			free(pointer);
+			// Stitch the list over the removed item.
+			if (old) {
+				old->next = next;
+			}
 			// Skip for this use only since we just freed it
 			pointer = next;
 			continue;

@@ -23,6 +23,7 @@ struct thumbnail_cache {
 	struct thumbnail_cache *next;
 };
 
+void pager_flush(struct view *view);
 void pager_create(void);
 void pager_update(void);
 void process_pager_release(float sx, float sy);

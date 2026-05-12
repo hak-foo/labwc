@@ -1622,7 +1622,9 @@ actions_run(struct view *activator, struct wl_list *actions, struct cursor_conte
 		struct view *view = view_for_action(activator, action, &ctx);
 
 		run_action(view, action, &ctx);
+		pager_flush(view);
 	}
 	// TODO: Do this after events, and do something meaningful
+	
 	pager_update();
 }
