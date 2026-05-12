@@ -138,3 +138,27 @@ snapping.overlay.region.border.width: 1
 snapping.overlay.edge.border.width: 1
 snapping.overlay.region.border.color: #dddda6,#000000,#dddda6
 snapping.overlay.edge.border.color: #dddda6,#000000,#dddda6
+
+pager.active: #603030a0
+pager.inactive: #403030a0
+
+pager.window: none
+pager.window.color: #000000
+pager.window.border-width: 2
+pager.window.bevel-width: 1
+pager.window.highlight: 256
+pager.window.shadow: 128
+
+pager.minimized: doublesunken
+pager.minimized.color: #000000
+pager.minimized.border-width: 0
+pager.minimized.bevel-width: 0
+pager.minimized.highlight: 256
+pager.minimized.shadow: 128
+
+pager.border: none
+pager.border.color: #000000
+pager.border.width: 0
+pager.border.bevel-width: 0
+pager.border.highlight: 128
+pager.border.shadow: 64

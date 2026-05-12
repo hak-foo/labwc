@@ -37,6 +37,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "xwayland.h"
+#include "workspaces.h"
 
 #if WLR_HAS_LIBINPUT_BACKEND
 	#include <wlr/backend/libinput.h>
@@ -553,6 +554,11 @@ cursor_update_common(const struct cursor_context *ctx,
 		 */
 		return;
 	}
+	
+	if (ctx->type == LAB_NODE_PAGER) {
+		// The pager manages its own cursor choices
+		return;
+	}
 
 	/* TODO: verify drag_icon logic */
 	if (seat->pressed.ctx.surface && ctx->surface != seat->pressed.ctx.surface
@@ -638,6 +644,24 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 	/* Otherwise, find view under the pointer and send the event along */
 	struct cursor_context ctx = get_cursor_context();
 	struct seat *seat = &server.seat;
+
+	if (ctx.type == LAB_NODE_PAGER) {
+		// We need to set cursor type here so we don't have a dangling "old" cursor
+		// if you move from a window into the pager.
+		if (active_drag_view) {
+			cursor_set(&server.seat, LAB_CURSOR_GRAB);
+		} else {
+			cursor_set(&server.seat, LAB_CURSOR_DEFAULT);
+		}
+		process_pager_drag(ctx.sx, ctx.sy);
+		return false;
+	} else {
+		// Kill a pager drag if the cursor leaves the pager.
+		if (active_drag_view) {
+			active_drag_view = NULL;
+		}
+	}
+
 
 	if (ctx.type == LAB_NODE_MENUITEM) {
 		menu_process_cursor_motion(ctx.node);
@@ -1150,6 +1174,11 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		interactive_set_grab_context(&ctx);
 	}
 
+	if (ctx.type == LAB_NODE_PAGER) {
+		process_pager_press(ctx.sx, ctx.sy);
+		return false;
+	}
+	
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/*
 		 * If menu was already opened on press, set a very small value
@@ -1217,6 +1246,11 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	const bool notify = !lab_set_contains(&seat->bound_buttons, button);
 
 	cursor_context_save(&seat->pressed, NULL);
+	
+	if (ctx.type == LAB_NODE_PAGER) {
+		process_pager_release(ctx.sx, ctx.sy);
+		return false;
+	}
 
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/* TODO: take into account overflow of time_msec */

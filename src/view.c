@@ -496,6 +496,7 @@ view_set_output(struct view *view, struct output *output)
 	if (view->fullscreen) {
 		desktop_update_top_layer_visibility();
 	}
+	pager_update();
 }
 
 void
@@ -505,6 +506,7 @@ view_close(struct view *view)
 	if (view->impl->close) {
 		view->impl->close(view);
 	}
+	pager_update();
 }
 
 static void
@@ -526,6 +528,7 @@ view_update_outputs(struct view *view)
 		wl_signal_emit_mutable(&view->events.new_outputs, NULL);
 		desktop_update_top_layer_visibility();
 	}
+	pager_update();
 }
 
 bool
@@ -567,6 +570,7 @@ view_moved(struct view *view)
 	if (rc.resize_indicator && server.grabbed_view == view) {
 		resize_indicator_update(view);
 	}
+	pager_update();
 }
 
 void
@@ -812,6 +816,7 @@ view_minimize(struct view *view, bool minimized)
 			desktop_focus_view(view, /* raise */ true);
 		}
 	}
+	pager_update();
 }
 
 bool
@@ -2301,6 +2306,7 @@ view_set_title(struct view *view, const char *title)
 
 	ssd_update_title(view->ssd);
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
+	pager_update();
 }
 
 void
@@ -2567,4 +2573,5 @@ view_destroy(struct view *view)
 	free(view);
 
 	cursor_update_focus();
+	pager_update();
 }

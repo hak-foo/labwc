@@ -111,6 +111,7 @@ struct rcxml {
 	struct font font_menuheader;
 	struct font font_menuitem;
 	struct font font_osd;
+	struct font font_pager;
 
 	/* Pointer to current theme */
 	struct theme *theme;
@@ -211,6 +212,9 @@ struct rcxml {
 	float mag_scale;
 	float mag_increment;
 	bool mag_filter;
+	
+	bool pager_enabled;
+	int pager_x, pager_y, pager_width, pager_height;
 };
 
 /* defined in main.c */

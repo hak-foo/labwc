@@ -648,6 +648,7 @@ extending outward from the snapped edge.
 	- MenuHeader - menu title
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
+	- Pager - window models in the pager.
 	If no place attribute is provided, the setting will be applied to all
 	places.
 
@@ -1444,6 +1445,17 @@ situation.
 *<magnifier><useFilter>* [yes|no|default]
 	Whether to apply a bilinear filter to the magnified image, or
 	just to use nearest-neighbour. Default is true - bilinear filtered.
+	
+## PAGER
+
+```
+  <pager enabled="true" x="700" y="50" width="300" height="300" />
+```
+	*enabled* determines whether or not to show the minimap pager.  Workspaces are shown verticaly stacked.  Windows can be clicked to raise, dragged to move.  Clicking the empty area of the pager will switch to the relevant workspace.
+	
+	*x* and *y* are the position of the top corner of the pager
+	
+	*width* and *height* are the dimensions of the pager, split evenly among each workspace.
 
 ## ENVIRONMENT VARIABLES
 
