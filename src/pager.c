@@ -130,17 +130,11 @@ void process_pager_release(float sx, float sy)
 		sy > rc.pager_height - rc.theme->pager_border_width) {
 		return;
 	}
-	sx -= rc.theme->pager_border_width;
-	sy -= rc.theme->pager_border_width;
+
 	if (!active_drag_view) {
 		return;
 	}
 
-	struct view *found_view = find_pager_window(pager_drag_start_x, pager_drag_start_y);
-	if (found_view) {
-		process_pager_move(sx, sy, found_view);
-		desktop_focus_view(found_view, true);
-	}
 	active_drag_view = NULL;
 	pager_update();
 }
@@ -176,6 +170,7 @@ void process_pager_press(float sx, float sy)
 	if (found_view) {
 		pager_drag_start_x = sx;
 		pager_drag_start_y = sy;
+		desktop_focus_view(found_view, true);
 		pager_update();
 	} else {
 		int total_pagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
