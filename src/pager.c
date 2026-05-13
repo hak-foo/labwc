@@ -39,43 +39,88 @@ unsigned char *pixel_data;
 
 struct thumbnail_cache *thumb_cache;
 
-struct view *find_pager_window(float sx, float sy)
+struct wlr_fbox thumbnail_size(struct view *view, int wscount)
 {
+	struct wlr_box overall_box = { 0 };
+	wlr_output_layout_get_box(server.output_layout,
+		NULL, &overall_box);
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
 	int total_pagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
 	int pagerheight = ceil((float)total_pagerheight /
 		wl_list_length(&rc.workspace_config.workspaces));
 
-	struct wlr_box overall_box = { 0 };
-	wlr_output_layout_get_box(server.output_layout,
-		NULL, &overall_box);
-
 	int screenwidth = overall_box.width - overall_box.x;
 	int screenheight = overall_box.height - overall_box.y;
 
+	struct theme *theme = rc.theme;
+	int wx = view->current.x * pagerwidth / screenwidth;
+	int wy = view->current.y * pagerheight / screenheight +
+		pagerheight * wscount;
+	int width = view->current.width * pagerwidth / screenwidth;
+	int height = view->current.height *
+		pagerheight / screenheight;
+	// Bound the outlines to the current pager frame
+	if (wy < pagerheight * wscount) {
+		height += (wy - pagerheight * wscount);
+	}
+	wy = MAX(pagerheight*wscount, wy);
+
+	width = MIN(width, pagerwidth - wx);
+	if (wx < 0) {
+		width += wx;
+	}
+	wx = MAX(0, wx);
+
+	// Shaded windows are shown as 1px high
+	if (view->shaded) {
+		height = 1;
+	}
+
+	// Crop to current frame
+	height = MIN(height, (wscount+1) * pagerheight - wy);
+	// Crop to bottom edge for odd sizes where the
+	// last frame is marginally smaller
+	height = MIN(height, (total_pagerheight-1 - wy));
+
+	if (height < 1 + 2 * (view->minimized ?
+			theme->pager_minimized_window_border_width :
+			theme->pager_window_border_width)) {
+		height = 1 + 2 * (view->minimized ?
+			theme->pager_minimized_window_border_width :
+			theme->pager_window_border_width);
+		wy = MIN(wy, (wscount+1) * pagerheight-height);
+	}
+
+	struct wlr_fbox border_fbox = {
+		.x = wx,
+		.y = wy,
+		.width = width,
+		.height = height,
+		};
+	return border_fbox;
+}
+
+struct view *find_pager_window(float sx, float sy)
+{
 	struct workspace *workspace;
 	struct view *view;
 
 	int wscount = 0;
-		wl_list_for_each(workspace, &server.workspaces.all, link) {
-			// Start at the top down
-			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == workspace) {
-					int wx = view->current.x * pagerwidth / screenwidth;
-					int wy = view->current.y * pagerheight / screenheight +
-						pagerheight * wscount;
-					int width = view->current.width * pagerwidth /
-						screenwidth;
-					int height = view->current.height * pagerheight /
-						screenheight;
-					if (sx >= wx && sy >= wy &&
-						sx <= wx+width && sy <= wy+height) {
-						return view;
-					}
+	wl_list_for_each(workspace, &server.workspaces.all, link) {
+		// Start at the top down
+		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+			if (view->workspace == workspace) {
+				struct wlr_fbox border_fbox =
+					thumbnail_size(view, wscount);
+				if (sx >= border_fbox.x && sy >= border_fbox.y &&
+					sx <= border_fbox.x+border_fbox.width &&
+					sy <= border_fbox.y+border_fbox.height) {
+					return view;
 				}
 			}
-			wscount++;
 		}
+		wscount++;
+	}
 
 	return NULL;
 }
@@ -124,17 +169,6 @@ void process_pager_move(float sx, float sy, struct view *found_view)
 
 void process_pager_release(float sx, float sy)
 {
-	if (sx < rc.theme->pager_border_width ||
-		sy < rc.theme->pager_border_width ||
-		sx > rc.pager_width - rc.theme->pager_border_width ||
-		sy > rc.pager_height - rc.theme->pager_border_width) {
-		return;
-	}
-
-	if (!active_drag_view) {
-		return;
-	}
-
 	active_drag_view = NULL;
 	pager_update();
 }
@@ -404,9 +438,6 @@ void pager_update(void)
 	wlr_output_layout_get_box(server.output_layout,
 		NULL, &overall_box);
 
-	int screenwidth = overall_box.width - overall_box.x;
-	int screenheight = overall_box.height - overall_box.y;
-
 	// Divide pager among workspaces vertically
 	int pagerheight = ceil((float)total_pagerheight /
 		wl_list_length(&rc.workspace_config.workspaces));
@@ -441,38 +472,8 @@ void pager_update(void)
 			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
 				if (view->workspace == workspace) {
 					// Determine dimensions for mini-window (common)
-
-					int wx = view->current.x * pagerwidth / screenwidth;
-					int wy = view->current.y * pagerheight / screenheight +
-						pagerheight * wscount;
-					int width = view->current.width * pagerwidth / screenwidth;
-					int height = view->current.height *
-						pagerheight / screenheight;
-					// Bound the outlines to the current pager frame
-					if (wy < pagerheight * wscount) {
-						height += (wy - pagerheight * wscount);
-					}
-					wy = MAX(pagerheight*wscount, wy);
-
-					width = MIN(width, pagerwidth - wx);
-					if (wx < 0) {
-						width += wx;
-					}
-					wx = MAX(0, wx);
-
-					// Crop to current frame
-					height = MIN(height, (wscount+1) * pagerheight - wy);
-					// Crop to bottom edge for odd sizes where the
-					// last frame is marginally smaller
-					height = MIN(height, (total_pagerheight-1 - wy));
-
-					struct wlr_fbox border_fbox = {
-						.x = wx,
-						.y = wy,
-						.width = width,
-						.height = height,
-						};
-
+					struct wlr_fbox border_fbox =
+						thumbnail_size(view, wscount);
 					// Prepare border/caption styles that differ
 					// for minimized/normal windows
 					float *bc =
@@ -509,11 +510,6 @@ void pager_update(void)
 						view->minimized ?
 						theme->pager_color_minimized_window_title :
 						theme->pager_color_window_title;
-
-					// Shaded windows are shown as 1px high
-					if (view->shaded) {
-						border_fbox.height = 1;
-					}
 
 					// Only generate a thumbnail if we are configured for
 					// them and it will produce a positive size
