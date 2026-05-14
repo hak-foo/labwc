@@ -102,8 +102,13 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 	if (view_titlebar_visible(view)) {
 		/* If the titlebar is visible, consider it part of the view */
 		int titlebar_height = rc.theme->titlebar_height;
-		view_box.y -= titlebar_height;
-		view_box.height += titlebar_height;
+		if (1 /*left side*/) {
+			view_box.x -= titlebar_height;
+			view_box.width += titlebar_height;
+		} else {
+			view_box.y -= titlebar_height;
+			view_box.height += titlebar_height;
+		}
 	}
 
 	if (wlr_box_contains_point(&view_box, cursor->x, cursor->y)) {
