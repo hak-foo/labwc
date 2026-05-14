@@ -118,7 +118,6 @@ ssd_titlebar_create(struct ssd *ssd)
 				theme->window[active].titlebar_pattern);
 		}
 		
-		wlr_scene_buffer_set_transform(subtree->title->scene_buffer, 1);
 		assert(subtree->title);
 		node_descriptor_create(&subtree->title->scene_buffer->node,
 			LAB_NODE_TITLE, view, /*data*/ NULL);
@@ -317,7 +316,7 @@ update_visible_buttons(struct ssd *ssd)
 	 * The corner-left button is lastly removed as it's usually a window
 	 * menu button (or an app icon button in the future).
 	 *
-	 * There is spacing to the inside of each button, including between the
+	 * There is spacing to the inside of eatitch button, including between the
 	 * innermost buttons and the window title. See also get_title_offsets().
 	 */
 	if (1 /* left side*/) {
@@ -619,7 +618,12 @@ ssd_update_title(struct ssd *ssd)
 
 	int offset_left, offset_right;
 	get_title_offsets(ssd, &offset_left, &offset_right);
-	int title_bg_width = view->current.width - offset_left - offset_right;
+	int title_bg_width;
+	if (1 /*left side*/) {
+		title_bg_width = view->current.height - offset_left - offset_right;
+	} else {
+		title_bg_width = view->current.width - offset_left - offset_right;
+	}
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
@@ -639,11 +643,20 @@ ssd_update_title(struct ssd *ssd)
 			/* title the same + we don't need to resize title */
 			continue;
 		}
-
+		
 		const float bg_color[4] = {0, 0, 0, 0}; /* ignored */
-		scaled_font_buffer_update(subtree->title, view->title,
-			title_bg_width, font,
-			text_color, bg_color);
+		if (1 /*left side*/) {
+			scaled_font_buffer_update(subtree->title, view->title,
+				title_bg_width, font,
+				text_color, bg_color);
+			wlr_scene_buffer_set_dest_size(subtree->title->scene_buffer,subtree->title->height, subtree->title->width);
+			wlr_scene_buffer_set_transform(subtree->title->scene_buffer,3);
+			
+		} else {
+			scaled_font_buffer_update(subtree->title, view->title,
+				title_bg_width, font,
+				text_color, bg_color);
+		}
 
 		/* And finally update the cache */
 		dstate->width = subtree->title->width;
@@ -653,7 +666,11 @@ ssd_update_title(struct ssd *ssd)
 	if (!title_unchanged) {
 		xstrdup_replace(state->text, view->title);
 	}
-	ssd_update_title_positions(ssd, offset_left, offset_right);
+	if (1 /*left side*/) {
+		ssd_update_title_positions(ssd, offset_right, offset_left);
+	} else {
+		ssd_update_title_positions(ssd, offset_left, offset_right);
+	}
 }
 
 void
