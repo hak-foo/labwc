@@ -91,7 +91,11 @@ ssd_titlebar_create(struct ssd *ssd)
 			wlr_scene_buffer_set_filter_mode(
 				subtree->bar, WLR_SCALE_FILTER_NEAREST);
 		}
-		wlr_scene_node_set_position(&subtree->bar->node, corner_width, 0);
+		if (1 /*left side*/) {
+			wlr_scene_node_set_position(&subtree->bar->node, -theme->titlebar_height, theme->titlebar_height);	
+		} else {
+			wlr_scene_node_set_position(&subtree->bar->node, corner_width, 0);
+		}
 
 		subtree->corner_left = lab_wlr_scene_buffer_create(parent, corner_top_left);
 		wlr_scene_node_set_position(&subtree->corner_left->node,
@@ -240,9 +244,15 @@ set_squared_corners(struct ssd *ssd, bool enable)
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
 
-		wlr_scene_node_set_position(&subtree->bar->node, x, 0);
-		wlr_scene_buffer_set_dest_size(subtree->bar,
-			MAX(width - 2 * x, 0), theme->titlebar_height);
+		if (1 /*left side*/) {
+			wlr_scene_node_set_position(&subtree->bar->node, -theme->titlebar_height, theme->titlebar_height);
+			wlr_scene_buffer_set_dest_size(subtree->bar,
+				theme->titlebar_height, view->current.height);
+		} else {
+			wlr_scene_node_set_position(&subtree->bar->node, x, 0);
+			wlr_scene_buffer_set_dest_size(subtree->bar,
+				MAX(width - 2 * x, 0), theme->titlebar_height);
+		}
 
 		wlr_scene_node_set_enabled(&subtree->corner_left->node, !enable);
 
@@ -294,6 +304,7 @@ update_visible_buttons(struct ssd *ssd)
 	struct view *view = ssd->view;
 	struct theme *theme = rc.theme;
 	int width = MAX(view->current.width - 2 * theme->window_titlebar_padding_width, 0);
+	int height = MAX(view->current.height - 2 * theme->window_titlebar_padding_width, 0);
 	int button_width = theme->window_button_width;
 	int button_spacing = theme->window_button_spacing;
 	int button_count_left = rc.nr_title_buttons_left;
@@ -309,12 +320,23 @@ update_visible_buttons(struct ssd *ssd)
 	 * There is spacing to the inside of each button, including between the
 	 * innermost buttons and the window title. See also get_title_offsets().
 	 */
-	while (width < ((button_width + button_spacing)
-			* (button_count_left + button_count_right))) {
-		if (button_count_left > button_count_right) {
-			button_count_left--;
-		} else {
-			button_count_right--;
+	if (1 /* left side*/) {
+		while (height < ((button_width + button_spacing)
+				* (button_count_left + button_count_right))) {
+			if (button_count_left > button_count_right) {
+				button_count_left--;
+			} else {
+				button_count_right--;
+			}
+		}
+	} else {
+		while (width < ((button_width + button_spacing)
+				* (button_count_left + button_count_right))) {
+			if (button_count_left > button_count_right) {
+				button_count_left--;
+			} else {
+				button_count_right--;
+			}
 		}
 	}
 
@@ -374,9 +396,15 @@ ssd_titlebar_update(struct ssd *ssd)
 			view->visible_on_all_workspaces);
 		ssd->state.was_omnipresent = view->visible_on_all_workspaces;
 	}
-
-	if (width == ssd->state.geometry.width) {
-		return;
+	
+	if (1/*left side*/) {
+		if (height == ssd->state.geometry.height) {
+			return;
+		}
+	} else {
+		if (width == ssd->state.geometry.width) {
+			return;
+		}
 	}
 
 	update_visible_buttons(ssd);
@@ -394,7 +422,7 @@ ssd_titlebar_update(struct ssd *ssd)
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
 		wlr_scene_buffer_set_dest_size(subtree->bar,
-			MAX(width - bg_offset * 2, 0), theme->titlebar_height);
+			theme->titlebar_height, view->current.height);
 
 		x = theme->window_titlebar_padding_width;
 		if (1/* left side */) {
