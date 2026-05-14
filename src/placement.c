@@ -162,7 +162,7 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 			bmp->rows[nr_rows++] = y;
 		}
 
-		x = v->pending.x + margin.right + v->pending.width;
+		x = v->pending.x + margin.right + view_effective_width(v, true);
 		y = v->pending.y + margin.bottom
 			+ view_effective_height(v, /* use_pending */ true);
 
@@ -251,7 +251,7 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 		struct border margin = ssd_get_margin(v->ssd);
 		int lx = v->pending.x - margin.left;
 		int ly = v->pending.y - margin.top;
-		int hx = v->pending.x + margin.right + v->pending.width;
+		int hx = v->pending.x + margin.right + view_effective_width(v, true);
 		int hy = v->pending.y + margin.bottom
 			+ view_effective_height(v, /* use_pending */ true);
 

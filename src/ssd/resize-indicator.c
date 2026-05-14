@@ -199,6 +199,7 @@ resize_indicator_update(struct view *view)
 	} else {
 		view_box = view->current;
 		view_box.height = view_effective_height(view, /* use_pending */ false);
+		view_box.width = view_effective_width(view, /* use_pending */ false);
 	}
 
 	if (server.input_mode == LAB_INPUT_STATE_RESIZE) {

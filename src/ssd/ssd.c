@@ -44,7 +44,11 @@ ssd_thickness(struct view *view)
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		struct border thickness = { 0 };
 		if (view_titlebar_visible(view)) {
-			thickness.top += theme->titlebar_height;
+			if (1 /*left side*/) {
+				thickness.left += theme->titlebar_height;
+			} else {
+				thickness.top += theme->titlebar_height;
+			}
 		}
 		return thickness;
 	}
@@ -98,6 +102,7 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 
 	struct wlr_box view_box = view->current;
 	view_box.height = view_effective_height(view, /* use_pending */ false);
+	view_box.width = view_effective_width(view, /* use_pending */ false);
 
 	if (view_titlebar_visible(view)) {
 		/* If the titlebar is visible, consider it part of the view */
@@ -219,7 +224,7 @@ ssd_update_geometry(struct ssd *ssd)
 	struct wlr_box cached = ssd->state.geometry;
 	struct wlr_box current = view->current;
 
-	int eff_width = current.width;
+	int eff_width = view_effective_width(view, false);
 	int eff_height = view_effective_height(view, /* use_pending */ false);
 
 	bool update_area = eff_width != cached.width || eff_height != cached.height;

@@ -961,11 +961,23 @@ view_effective_height(struct view *view, bool use_pending)
 {
 	assert(view);
 
-	if (view->shaded) {
+	if (view->shaded && 0 /*left side, not*/) {
 		return 0;
 	}
 
 	return use_pending ? view->pending.height : view->current.height;
+}
+
+int
+view_effective_width(struct view *view, bool use_pending)
+{
+	assert(view);
+
+	if (view->shaded && 1 /*left side*/) {
+		return 0;
+	}
+
+	return use_pending ? view->pending.width : view->current.width;
 }
 
 void
@@ -1916,7 +1928,7 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 		destination_x = left;
 		break;
 	case LAB_EDGE_RIGHT:
-		destination_x = right - view->pending.width;
+		destination_x = right - view_effective_width(view, true);
 		break;
 	case LAB_EDGE_TOP:
 		destination_y = top;
@@ -1933,7 +1945,8 @@ view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windo
 		output_usable_area_in_layout_coords(view->output);
 
 	/* Make sure the window is appropriately in view along the x direction */
-	destination_x = shift_view_to_usable_1d(view->pending.width,
+	int eff_width = view_effective_width(view, /* use_pending */ true);
+	destination_x = shift_view_to_usable_1d(eff_width,
 		view->pending.x, original_usable.x, original_usable.width,
 		destination_x, usable.x, usable.width, margin.left, margin.right);
 
