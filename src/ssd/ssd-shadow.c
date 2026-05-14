@@ -53,8 +53,6 @@ set_shadow_parts_geometry(struct ssd_shadow_subtree *subtree,
 {
 	int offsetx = 0, offsety =  0;
 	if (1 /*left side*/) {
-		width += titlebar_height;
-		height -= titlebar_height;
 		offsetx = -titlebar_height;
 		offsety = titlebar_height;
 	}
@@ -156,6 +154,10 @@ set_shadow_geometry(struct ssd *ssd)
 	int titlebar_height = ssd->titlebar.height;
 	int width = view->current.width;
 	int height = view_effective_height(view, false) + titlebar_height;
+	if (1 /*left side*/) {
+		width = view_effective_width(view, false) + titlebar_height;
+		height = view->current.height;
+	}
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {

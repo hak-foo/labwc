@@ -414,7 +414,7 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 
 		struct border win_edges = {
 			.top = v->current.y - border.top,
-			.right = v->current.x + v->current.width + border.right,
+			.right = v->current.x + view_effective_width(v, false) + border.right,
 			.bottom = v->current.y + border.bottom
 				+ view_effective_height(v, /* use_pending */ false),
 			.left = v->current.x - border.left,
@@ -507,7 +507,7 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 
 	if (view_geom->x != *x) {
 		int lshift = border.left + rc.gap;
-		int rshift = border.right + rc.gap + view_geom->width;
+		int rshift = border.right + rc.gap + view_effective_width(view, use_pending);
 
 		adjust_move_coords_1d(x, edges.left, lshift,
 			edges.right, rshift, *x < view_geom->x);

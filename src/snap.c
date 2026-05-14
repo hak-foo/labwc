@@ -89,7 +89,7 @@ snap_move_to_edge(struct view *view, enum lab_edge direction,
 		break;
 	case LAB_EDGE_RIGHT:
 		target.x = usable.x + usable.width
-			- rc.gap - target.width - ssd.right;
+			- rc.gap - view_effective_width(view, true) - ssd.right;
 		if (target.x <= view->pending.x) {
 			return;
 		}
