@@ -51,6 +51,13 @@ set_shadow_parts_geometry(struct ssd_shadow_subtree *subtree,
 		int width, int height, int titlebar_height, int corner_size,
 		int inset, int visible_shadow_width)
 {
+	int offsetx = 0, offsety =  0;
+	if (1 /*left side*/) {
+		width += titlebar_height;
+		height -= titlebar_height;
+		offsetx = -titlebar_height;
+		offsety = titlebar_height;
+	}
 	/*
 	 * If the shadow inset is greater than half the overall window height
 	 * or width (eg. because the window is shaded or because we have a
@@ -88,53 +95,53 @@ set_shadow_parts_geometry(struct ssd_shadow_subtree *subtree,
 	int x;
 	int y;
 
-	x = width - inset + horizontal_overlap_downsized;
-	y = -titlebar_height + height - inset + vertical_overlap_downsized;
+	x = offsetx + width - inset + horizontal_overlap_downsized;
+	y = offsety + -titlebar_height + height - inset + vertical_overlap_downsized;
 	wlr_scene_node_set_position(&subtree->bottom_right->node, x, y);
 	corner_scale_crop(subtree->bottom_right, horizontal_overlap_downsized,
 		vertical_overlap_downsized, corner_size);
 
-	x = -visible_shadow_width;
-	y = -titlebar_height + height - inset + vertical_overlap;
+	x = offsetx + -visible_shadow_width;
+	y = offsety + -titlebar_height + height - inset + vertical_overlap;
 	wlr_scene_node_set_position(&subtree->bottom_left->node, x, y);
 	corner_scale_crop(subtree->bottom_left, horizontal_overlap,
 		vertical_overlap, corner_size);
 
-	x = -visible_shadow_width;
-	y = -titlebar_height - visible_shadow_width;
+	x = offsetx + -visible_shadow_width;
+	y = offsety + -titlebar_height - visible_shadow_width;
 	wlr_scene_node_set_position(&subtree->top_left->node, x, y);
 	corner_scale_crop(subtree->top_left, horizontal_overlap_downsized,
 		vertical_overlap_downsized, corner_size);
 
-	x = width - inset + horizontal_overlap;
-	y = -titlebar_height - visible_shadow_width;
+	x = offsetx + width - inset + horizontal_overlap;
+	y = offsety + -titlebar_height - visible_shadow_width;
 	wlr_scene_node_set_position(&subtree->top_right->node, x, y);
 	corner_scale_crop(subtree->top_right, horizontal_overlap,
 		vertical_overlap, corner_size);
 
-	x = width;
-	y = -titlebar_height + inset;
+	x = offsetx + width;
+	y = offsety + -titlebar_height + inset;
 	wlr_scene_node_set_position(&subtree->right->node, x, y);
 	wlr_scene_buffer_set_dest_size(subtree->right,
 		visible_shadow_width, MAX(height - 2 * inset, 0));
 	wlr_scene_node_set_enabled(&subtree->right->node, show_sides);
 
-	x = inset;
-	y = -titlebar_height + height;
+	x = offsetx + inset;
+	y = offsety + -titlebar_height + height;
 	wlr_scene_node_set_position(&subtree->bottom->node, x, y);
 	wlr_scene_buffer_set_dest_size(subtree->bottom,
 		MAX(width - 2 * inset, 0), visible_shadow_width);
 	wlr_scene_node_set_enabled(&subtree->bottom->node, show_topbottom);
 
-	x = -visible_shadow_width;
-	y = -titlebar_height + inset;
+	x = offsetx + -visible_shadow_width;
+	y = offsety + -titlebar_height + inset;
 	wlr_scene_node_set_position(&subtree->left->node, x, y);
 	wlr_scene_buffer_set_dest_size(subtree->left,
 		visible_shadow_width, MAX(height - 2 * inset, 0));
 	wlr_scene_node_set_enabled(&subtree->left->node, show_sides);
 
-	x = inset;
-	y = -titlebar_height - visible_shadow_width;
+	x = offsetx + inset;
+	y = offsety + -titlebar_height - visible_shadow_width;
 	wlr_scene_node_set_position(&subtree->top->node, x, y);
 	wlr_scene_buffer_set_dest_size(subtree->top,
 		MAX(width - 2 * inset, 0), visible_shadow_width);
