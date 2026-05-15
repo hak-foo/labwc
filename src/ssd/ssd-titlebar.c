@@ -546,6 +546,7 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 		x = offset_left;
 		y = (theme->titlebar_height - title->height) / 2;
 		if (1 /*left side*/) {
+			x = offset_right;
 			y -= theme->titlebar_height;
 		}
 
@@ -583,6 +584,8 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 				// Prevent compressed titlebar from drawing the title over the edge
 				wlr_scene_node_set_enabled(&title->scene_buffer->node, false);
 			}
+			// Seems to fudge-factor for the rotation
+			x += theme->titlebar_height;
 			wlr_scene_node_set_position(&title->scene_buffer->node, y, x);
 		} else {
 			if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {

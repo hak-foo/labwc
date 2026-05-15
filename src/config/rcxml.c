@@ -159,8 +159,22 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 		uint32_t *found_buttons /* bitmask */)
 {
 	gchar **identifiers = g_strsplit(content, ",", -1);
+	int itemCount = 0;
+	if (1/* left side*/) {
+		for (size_t i = 0; identifiers[i]; ++i) {
+			itemCount++;
+		}
+	}
+	itemCount--;
 	for (size_t i = 0; identifiers[i]; ++i) {
-		char *identifier = identifiers[i];
+		char *identifier;
+		if (1 /* left side*/) {
+			// Left side menu items are read backwards to lay out consistently
+			identifier = identifiers[itemCount - i];
+		} else {
+			identifier = identifiers[i];
+		}
+		
 		if (string_null_or_empty(identifier)) {
 			continue;
 		}
@@ -229,10 +243,18 @@ fill_title_layout(const char *content)
 	}
 
 	uint32_t found_buttons = 0;
-	fill_section(parts[0], rc.title_buttons_left,
-		&rc.nr_title_buttons_left, &found_buttons);
-	fill_section(parts[1], rc.title_buttons_right,
-		&rc.nr_title_buttons_right, &found_buttons);
+	if (1 /* left side*/) {
+		fill_section(parts[1], rc.title_buttons_left,
+			&rc.nr_title_buttons_left, &found_buttons);
+		fill_section(parts[0], rc.title_buttons_right,
+			&rc.nr_title_buttons_right, &found_buttons);
+	} else {
+		fill_section(parts[0], rc.title_buttons_left,
+			&rc.nr_title_buttons_left, &found_buttons);
+		fill_section(parts[1], rc.title_buttons_right,
+			&rc.nr_title_buttons_right, &found_buttons);
+		
+	}
 
 	rc.title_layout_loaded = true;
 err:
