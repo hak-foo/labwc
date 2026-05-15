@@ -73,7 +73,11 @@ struct wlr_fbox thumbnail_size(struct view *view, int wscount)
 
 	// Shaded windows are shown as 1px high
 	if (view->shaded) {
-		height = 1;
+		if (1 /*left side*/) {
+		 	width = 1;
+		} else {
+			height = 1;
+		}
 	}
 
 	// Crop to current frame
