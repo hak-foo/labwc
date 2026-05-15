@@ -536,7 +536,7 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 		width = view->current.width;
 	}
 	int title_bg_width = width - offset_left - offset_right;
-
+	
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
@@ -555,28 +555,56 @@ ssd_update_title_positions(struct ssd *ssd, int offset_left, int offset_right)
 		}
 		wlr_scene_node_set_enabled(&title->scene_buffer->node, true);
 
-		if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
-			if (title->width + MAX(offset_left, offset_right) * 2 <= width) {
-				/* Center based on the full width */
-				x = (width - title->width) / 2;
-			} else {
-				/*
-				 * Center based on the width between the buttons.
-				 * Title jumps around once this is hit but its still
-				 * better than to hide behind the buttons on the right.
-				 */
-				x += (title_bg_width - title->width) / 2;
-			}
-		} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
-			x += title_bg_width - title->width;
-		} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
-			/* TODO: maybe add some theme x padding here? */
-		}
+		
+		
+		
+		
 		if (1/*left side*/) {
+			if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
+				if (title->width + MAX(offset_left, offset_right) * 2 <= width) {
+					/* Center based on the full width */
+					x = (width - title->width) / 2;
+				} else {
+					/*
+					 * Center based on the width between the buttons.
+					 * Title jumps around once this is hit but its still
+					 * better than to hide behind the buttons on the right.
+					 */
+					x += (title_bg_width - title->width) / 2;
+				}
+			// The rotation effectively swaps left and right sides
+			} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
+				x += title_bg_width - title->width - 5;
+			} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
+				/* TODO: maybe add some theme x padding here? */
+				x += 5;
+			}
+			if (x <= 5) {
+				// Prevent compressed titlebar from drawing the title over the edge
+				wlr_scene_node_set_enabled(&title->scene_buffer->node, false);
+			}
 			wlr_scene_node_set_position(&title->scene_buffer->node, y, x);
 		} else {
+			if (theme->window_label_text_justify == LAB_JUSTIFY_CENTER) {
+				if (title->width + MAX(offset_left, offset_right) * 2 <= width) {
+					/* Center based on the full width */
+					x = (width - title->width) / 2;
+				} else {
+					/*
+					 * Center based on the width between the buttons.
+					 * Title jumps around once this is hit but its still
+					 * better than to hide behind the buttons on the right.
+					 */
+					x += (title_bg_width - title->width) / 2;
+				}
+			} else if (theme->window_label_text_justify == LAB_JUSTIFY_RIGHT) {
+				x += title_bg_width - title->width;
+			} else if (theme->window_label_text_justify == LAB_JUSTIFY_LEFT) {
+				/* TODO: maybe add some theme x padding here? */
+			}
 			wlr_scene_node_set_position(&title->scene_buffer->node, x, y);
 		}
+		
 	}
 }
 
@@ -626,7 +654,7 @@ ssd_update_title(struct ssd *ssd)
 	get_title_offsets(ssd, &offset_left, &offset_right);
 	int title_bg_width;
 	if (1 /*left side*/) {
-		title_bg_width = view->current.height - offset_left - offset_right;
+		title_bg_width = view->current.height - offset_left - offset_right - 10;
 	} else {
 		title_bg_width = view->current.width - offset_left - offset_right;
 	}
