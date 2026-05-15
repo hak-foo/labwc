@@ -63,6 +63,10 @@ ssd_thickness(struct view *view)
 	if (!view_titlebar_visible(view)) {
 		thickness.top -= theme->titlebar_height;
 	}
+	if (view_titlebar_visible(view) && 1 /* left side*/) {
+		thickness.top -= theme->titlebar_height;
+		thickness.left += theme->titlebar_height;
+	}
 	return thickness;
 }
 
