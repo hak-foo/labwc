@@ -166,7 +166,7 @@ ssd_border_update(struct ssd *ssd)
 			// For left side
 			if (1 /*left side*/) {
 				renderBuffersetXY(subtree->textured_borders, full_width+(ssd->titlebar.height),
-					side_height + 2*theme->border_width,
+					height + 2*theme->border_width,
 					-ssd->titlebar.height,-theme->border_width);
 			} else {
 				renderBufferset(subtree->textured_borders, full_width,
@@ -178,7 +178,7 @@ ssd_border_update(struct ssd *ssd)
 				wlr_scene_rect_set_size(subtree->left,
 					theme->border_width, side_height+2*theme->border_width);
 				wlr_scene_node_set_position(&subtree->left->node,
-					-ssd->titlebar.height-theme->border_width, -theme->border_width);
+					-ssd->titlebar.height, -theme->border_width);
 				
 				wlr_scene_rect_set_size(subtree->right,
 					theme->border_width, side_height+2*theme->border_width);
@@ -186,14 +186,14 @@ ssd_border_update(struct ssd *ssd)
 					theme->border_width + width,-theme->border_width);
 				
 				wlr_scene_rect_set_size(subtree->bottom,
-					full_width+(ssd->titlebar.height + theme->border_width), theme->border_width);
+					full_width+(ssd->titlebar.height), theme->border_width);
 				wlr_scene_node_set_position(&subtree->bottom->node,
-					-ssd->titlebar.height-theme->border_width, height);
+					-ssd->titlebar.height, height);
 				
 				wlr_scene_rect_set_size(subtree->top,
-					full_width+(ssd->titlebar.height + theme->border_width), theme->border_width);
+					full_width+(ssd->titlebar.height), theme->border_width);
 				wlr_scene_node_set_position(&subtree->top->node,
-					-ssd->titlebar.height-theme->border_width, -theme->border_width);
+					-ssd->titlebar.height, -theme->border_width);
 			} else {
 				wlr_scene_rect_set_size(subtree->left,
 					theme->border_width, side_height);
