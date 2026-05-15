@@ -14,6 +14,7 @@
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "scaled-buffer/scaled-img-buffer.h"
+#include "scaled-buffer/scaled-buffer.h"
 #include "ssd.h"
 #include "ssd-internal.h"
 #include "theme.h"
@@ -116,6 +117,11 @@ ssd_titlebar_create(struct ssd *ssd)
 			subtree->title = scaled_font_buffer_create_for_titlebar(
 				subtree->tree, theme->titlebar_height,
 				theme->window[active].titlebar_pattern);
+		}
+		
+		if (1 /*left side*/) {
+			wlr_scene_buffer_set_transform(subtree->title->scene_buffer,3);
+			subtree->title->scaled_buffer->active_scale=1;
 		}
 		
 		assert(subtree->title);
