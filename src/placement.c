@@ -252,7 +252,7 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 		int lx = v->pending.x - margin.left;
 		int ly = v->pending.y - margin.top;
 		int hx = v->pending.x + margin.right + view_effective_width(v, true);
-		int hy = v->pending.y + margin.bottom
+		int hy = v->pending.y + margin.bottom  + view_effective_height(v, true);
 			+ view_effective_height(v, /* use_pending */ true);
 
 		/*
