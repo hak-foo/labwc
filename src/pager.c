@@ -94,6 +94,15 @@ struct wlr_fbox thumbnail_size(struct view *view, int wscount)
 			theme->pager_window_border_width);
 		wy = MIN(wy, (wscount+1) * pagerheight-height);
 	}
+	
+	if (width < 1 + 2 * (view->minimized ?
+			theme->pager_minimized_window_border_width :
+			theme->pager_window_border_width)) {
+		width = 1 + 2 * (view->minimized ?
+			theme->pager_minimized_window_border_width :
+			theme->pager_window_border_width);
+		wx = MIN(wx, pagerwidth - width);
+	}
 
 	struct wlr_fbox border_fbox = {
 		.x = wx,
