@@ -605,6 +605,9 @@ extending outward from the snapped edge.
 
 *<theme><icon>*
 	The name of the icon theme to use. Inherits *<theme><name>* if not set.
+	
+*<theme><rotatedTitle>*
+	If true, switch to left side titlebars.
 
 *<theme><fallbackAppIcon>*
 	The name of the icon to use as a fallback when the application icon

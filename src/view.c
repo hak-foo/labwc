@@ -961,7 +961,7 @@ view_effective_height(struct view *view, bool use_pending)
 {
 	assert(view);
 
-	if (view->shaded && 0 /*left side, not*/) {
+	if (view->shaded && !rc.rotated_title) {
 		return 0;
 	}
 
@@ -973,7 +973,7 @@ view_effective_width(struct view *view, bool use_pending)
 {
 	assert(view);
 
-	if (view->shaded && 1 /*left side*/) {
+	if (view->shaded && rc.rotated_title) {
 		return 0;
 	}
 

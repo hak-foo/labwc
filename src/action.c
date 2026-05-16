@@ -741,7 +741,7 @@ show_menu(struct view *view, struct cursor_context *ctx,
 		struct wlr_box extent = ssd_max_extents(view);
 		x = extent.x;
 		y = view->current.y;
-		
+
 		/* Push the client menu underneath the button */
 		if (is_client_menu && node_type_contains(
 				LAB_NODE_BUTTON, ctx->type)) {
@@ -750,9 +750,10 @@ show_menu(struct view *view, struct cursor_context *ctx,
 			wlr_scene_node_coords(ctx->node, &lx, &ly);
 			/* MAX() prevents negative x when the window is maximized */
 			x = MAX(x, lx - rc.theme->menu_border_width);
-			if (1 /* left side*/) {
+			if (rc.rotated_title) {
 				x = extent.x;
-				y = MAX(y, ly - rc.theme->menu_border_width+rc.theme->titlebar_height);
+				y = MAX(y, ly - rc.theme->menu_border_width
+					+ rc.theme->titlebar_height);
 			}
 		}
 	}

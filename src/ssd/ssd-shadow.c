@@ -52,7 +52,7 @@ set_shadow_parts_geometry(struct ssd_shadow_subtree *subtree,
 		int inset, int visible_shadow_width)
 {
 	int offsetx = 0, offsety =  0;
-	if (1 /*left side*/) {
+	if (rc.rotated_title) {
 		offsetx = -titlebar_height;
 		offsety = titlebar_height;
 	}
