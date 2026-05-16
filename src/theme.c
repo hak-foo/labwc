@@ -1871,13 +1871,21 @@ create_titlebar_pattern(const struct theme_background *bg, int height)
 
 	switch (bg->gradient) {
 	case LAB_GRADIENT_VERTICAL:
-		pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		if (rc.rotated_title) {
+			pattern = cairo_pattern_create_linear(0, 0, height, 0);
+		} else {
+			pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		}
 		add_color_stop_rgba_premult(pattern, 0, bg->color);
 		add_color_stop_rgba_premult(pattern, 1, bg->color_to);
 		break;
 
 	case LAB_GRADIENT_SPLITVERTICAL:
-		pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		if (rc.rotated_title) {
+			pattern = cairo_pattern_create_linear(0, 0, height, 0);
+		} else {
+			pattern = cairo_pattern_create_linear(0, 0, 0, height);
+		}
 		add_color_stop_rgba_premult(pattern, 0, bg->color_split_to);
 		add_color_stop_rgba_premult(pattern, 0.5, bg->color);
 		add_color_stop_rgba_premult(pattern, 0.5, bg->color_to);
@@ -1897,7 +1905,12 @@ static struct lab_data_buffer *
 create_titlebar_fill(cairo_pattern_t *pattern, int height)
 {
 	/* create 1px wide buffer to be stretched horizontally */
-	struct lab_data_buffer *fill = buffer_create_cairo(1, height, 1);
+	struct lab_data_buffer *fill;
+	if (rc.rotated_title) {
+		fill = buffer_create_cairo(height, 1, 1);
+	} else {
+		fill = buffer_create_cairo(1, height, 1);
+	}
 
 	cairo_t *cairo = cairo_create(fill->surface);
 	cairo_set_source(cairo, pattern);
