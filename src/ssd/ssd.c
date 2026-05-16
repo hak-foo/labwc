@@ -44,7 +44,7 @@ ssd_thickness(struct view *view)
 	if (view->maximized == VIEW_AXIS_BOTH) {
 		struct border thickness = { 0 };
 		if (view_titlebar_visible(view)) {
-			if (1 /*left side*/) {
+			if (rc.rotated_title) {
 				thickness.left += theme->titlebar_height;
 			} else {
 				thickness.top += theme->titlebar_height;
@@ -63,7 +63,7 @@ ssd_thickness(struct view *view)
 	if (!view_titlebar_visible(view)) {
 		thickness.top -= theme->titlebar_height;
 	}
-	if (view_titlebar_visible(view) && 1 /* left side*/) {
+	if (view_titlebar_visible(view) && rc.rotated_title) {
 		thickness.top -= theme->titlebar_height;
 		thickness.left += theme->titlebar_height;
 	}
@@ -111,7 +111,7 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 	if (view_titlebar_visible(view)) {
 		/* If the titlebar is visible, consider it part of the view */
 		int titlebar_height = rc.theme->titlebar_height;
-		if (1 /*left side*/) {
+		if (rc.rotated_title) {
 			view_box.x -= titlebar_height;
 			view_box.width += titlebar_height;
 		} else {

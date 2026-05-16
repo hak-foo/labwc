@@ -122,22 +122,22 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 		uint32_t *found_buttons /* bitmask */)
 {
 	gchar **identifiers = g_strsplit(content, ",", -1);
-	int itemCount = 0;
-	if (1/* left side*/) {
+	int item_count = 0;
+	if (rc.rotated_title) {
 		for (size_t i = 0; identifiers[i]; ++i) {
-			itemCount++;
+			item_count++;
 		}
 	}
-	itemCount--;
+	item_count--;
 	for (size_t i = 0; identifiers[i]; ++i) {
 		char *identifier;
-		if (1 /* left side*/) {
+		if (rc.rotated_title) {
 			// Left side menu items are read backwards to lay out consistently
-			identifier = identifiers[itemCount - i];
+			identifier = identifiers[item_count - i];
 		} else {
 			identifier = identifiers[i];
 		}
-		
+
 		if (string_null_or_empty(identifier)) {
 			continue;
 		}
@@ -206,7 +206,7 @@ fill_title_layout(const char *content)
 	}
 
 	uint32_t found_buttons = 0;
-	if (1 /* left side*/) {
+	if (rc.rotated_title) {
 		fill_section(parts[1], rc.title_buttons_left,
 			&rc.nr_title_buttons_left, &found_buttons);
 		fill_section(parts[0], rc.title_buttons_right,
@@ -216,7 +216,6 @@ fill_title_layout(const char *content)
 			&rc.nr_title_buttons_left, &found_buttons);
 		fill_section(parts[1], rc.title_buttons_right,
 			&rc.nr_title_buttons_right, &found_buttons);
-		
 	}
 
 	rc.title_layout_loaded = true;
@@ -1421,6 +1420,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		 * thumbnail="true"/>
 		 */
 		set_bool(content, &rc.pager_thumbnail);
+	} else if (!strcasecmp(nodename, "rotatedTitle.theme")) {
+		set_bool(content, &rc.rotated_title);
 	}
 
 	return false;

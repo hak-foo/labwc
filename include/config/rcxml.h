@@ -216,6 +216,7 @@ struct rcxml {
 	bool pager_enabled;
 	bool pager_thumbnail;
 	int pager_x, pager_y, pager_width, pager_height;
+	bool rotated_title;
 };
 
 /* defined in main.c */
