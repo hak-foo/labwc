@@ -149,6 +149,10 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		wlr_scene_node_destroy(&output->workspace_osd->node);
 		output->workspace_osd = NULL;
 	}
+	if (output->pager_osd) {
+		wlr_scene_node_destroy(&output->pager_osd->node);
+		output->pager_osd = NULL;
+	}
 
 	struct view *view;
 	wl_list_for_each(view, &server.views, link) {
