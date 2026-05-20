@@ -23,11 +23,12 @@ edges_for_target_geometry(struct border *edges, struct view *view,
 	struct border border = ssd_get_margin(view->ssd);
 
 	/* Use the effective height to properly handle shaded views */
-	int eff_height = view->shaded ? 0 : target.height;
+	int eff_height = (!rc.rotated_title && view->shaded) ? 0 : target.height;
+	int eff_width = (rc.rotated_title && view->shaded) ? 0 : target.width;
 
 	edges->left = target.x - border.left - rc.gap;
 	edges->top = target.y - border.top - rc.gap;
-	edges->right = target.x + target.width + border.right + rc.gap;
+	edges->right = target.x + eff_width + border.right + rc.gap;
 	edges->bottom = target.y + eff_height + border.bottom + rc.gap;
 }
 
