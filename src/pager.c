@@ -423,6 +423,229 @@ unsigned char *get_thumbnail_cache(
 	return new_entry->thumbnail;
 }
 
+void icons_update(void)
+{
+	printf("At 428\n");
+	struct output *output;
+	if (!(1)) { //change rc.icons_enabled
+		wl_list_for_each(output, &server.outputs, link) {
+			if (!output_is_usable(output)) {
+				continue;
+			}
+			if (output->icons_osd) {
+				wlr_scene_node_set_enabled(&output->icons_osd->node, false);
+			}
+		}
+		return;
+	}
+	
+	if (wl_list_empty(&rc.workspace_config.workspaces)) {
+		return;
+	}
+	printf("At 444\n");
+	struct theme *theme = rc.theme;
+	int iconswidth = 500; //change rc.icons_width;
+	int iconsheight = 200; //change rc.icons_height;
+	int x = 30; //change rc.icons_x;
+	int y = 300; //change rc.icons_y;
+
+	struct workspace *workspace;
+	struct view *view;
+	struct wlr_box overall_box = { 0 };
+	wlr_output_layout_get_box(server.output_layout,
+		NULL, &overall_box);
+
+	int font_h = font_height(&rc.font_pager); // change to a custom font for icons
+
+	wl_list_for_each(output, &server.outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+
+		struct lab_data_buffer *buffer = buffer_create_cairo(iconswidth,
+			iconsheight, output->wlr_output->scale);
+		if (!buffer) {
+			wlr_log(WLR_ERROR, "Failed to allocate buffer for pager");
+			continue;
+		}
+
+		cairo_t *cairo;
+		cairo_surface_t *surface;
+		cairo = cairo_create(buffer->surface);
+		int wscount = 0;
+		
+		
+		
+		wl_list_for_each(workspace, &server.workspaces.all, link) {
+			int highest_x = 0;
+			int highest_y = 0;
+			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+				if (view->workspace == workspace) {
+					if(view->icon_mapped) {
+						if (view->icon_y >= highest_y) {
+							highest_x = 0;
+							highest_y = view->icon_y;
+						}
+						if (view->icon_x >= highest_x && view->icon_y >= highest_y) {
+							highest_x = view->icon_x + 80 + 10; // width + spacing
+						}
+						if (highest_x + 80 >= iconswidth) { //width
+							highest_x = 0;
+						highest_y += 120 + 10; // width + spacing;
+						}
+					}
+				}
+			}
+			
+			printf("At 494: %d %d\n", highest_x, highest_y);
+			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+				if (view->workspace == workspace) {
+					if (!view->icon_mapped) {						
+						view->icon_x = highest_x;
+						view->icon_y = highest_y;
+						view->icon_mapped = TRUE;
+						printf("Mapping at %d %d\n",view->icon_x, view->icon_y);
+					}	
+						
+							
+					// Determine dimensions for mini-window (common)
+					struct wlr_fbox border_fbox = {
+						.width = 80,
+						.height = 110,
+						.x = view->icon_x,
+						.y = view->icon_y
+					};
+						thumbnail_size(view, wscount);
+					// Prepare border/caption styles that differ
+					// for minimized/normal windows
+					float *bc =
+						view->minimized ?
+						theme->pager_color_minimized_window :
+						theme->pager_color_window;
+
+					int bw =
+						view->minimized ?
+						theme->pager_minimized_window_border_width :
+						theme->pager_window_border_width;
+
+					int highlight =
+						view->minimized ?
+						theme->pager_minimized_window_highlight :
+						theme->pager_window_highlight;
+
+					int shadow =
+						view->minimized ?
+						theme->pager_minimized_window_shadow :
+						theme->pager_window_shadow;
+
+					enum border_type bt =
+						view->minimized ?
+						theme->pager_minimized_window_border_type :
+						theme->pager_window_border_type;
+
+					int bvw =
+						view->minimized ?
+						theme->pager_minimized_window_bevel_width :
+						theme->pager_window_bevel_width;
+
+					float *tc =
+						view->minimized ?
+						theme->pager_color_minimized_window_title :
+						theme->pager_color_window_title;
+
+					
+					set_cairo_color(cairo, bc);
+
+					cairo_rectangle(cairo,
+						theme->pager_border_width+border_fbox.x,
+						theme->pager_border_width+border_fbox.y,
+						border_fbox.width,
+						border_fbox.height);
+					cairo_fill(cairo);
+
+
+					// Experiment:
+					// Add borders on both highlighted and normal windows
+					// so they're easier to identify the edges and identifies
+					// minimized windows
+					cairo_borders(cairo,
+						theme->pager_border_width
+							+ border_fbox.x,
+						theme->pager_border_width
+							+border_fbox.y,
+						border_fbox.width,
+						border_fbox.height,
+						bw, highlight, shadow,
+						bt, bvw, bc);
+
+					PangoLayout *layout =
+						pango_cairo_create_layout(cairo);
+					pango_context_set_round_glyph_positions(
+						pango_layout_get_context(layout),
+						false);
+					pango_layout_set_ellipsize(
+						layout,
+						PANGO_ELLIPSIZE_END);
+					int req_width = font_width(
+						&rc.font_pager,
+						view->title);
+					PangoFontDescription *desc =
+						font_to_pango_desc(
+							&rc.font_pager);
+
+					set_cairo_color(cairo, tc);
+
+					req_width = MIN(req_width,
+						border_fbox.width -
+						2 * bw -2
+					);
+
+					cairo_move_to(cairo,
+							theme->pager_border_width
+								+ border_fbox.x
+								+ (border_fbox.width
+									- req_width) / 2,
+							theme->pager_border_width
+								+ border_fbox.y
+								+ (border_fbox.height
+									- font_h) - 3);
+					
+					pango_layout_set_font_description(
+						layout,
+						desc);
+					pango_layout_set_width(layout,
+						req_width * PANGO_SCALE);
+					pango_font_description_free(desc);
+					pango_layout_set_text(layout,
+						view->title, -1);
+					pango_cairo_show_layout(cairo,
+						layout);
+					g_object_unref(layout);
+				}
+			}
+			wscount++;
+		}
+		surface = cairo_get_target(cairo);
+		cairo_surface_flush(surface);
+		cairo_destroy(cairo);
+
+		if (!output->icons_osd) {
+			output->icons_osd = lab_wlr_scene_buffer_create(
+				&server.scene->tree, NULL);
+			node_descriptor_create(&output->icons_osd->node, LAB_NODE_PAGER, NULL, 0); // Change to icon node
+		}
+		wlr_scene_node_set_enabled(&output->icons_osd->node, true);
+
+		wlr_scene_node_set_position(&output->icons_osd->node, x, y);
+		wlr_scene_buffer_set_buffer(output->icons_osd, &buffer->base);
+		wlr_scene_buffer_set_dest_size(output->icons_osd,
+			buffer->logical_width, buffer->logical_height);
+		wlr_scene_node_place_below(&output->icons_osd->node, &output->layer_tree[1]->node);
+		wlr_buffer_drop(&buffer->base);
+	}
+}
+	
+	
 void pager_update(void)
 {
 	struct output *output;
@@ -437,6 +660,8 @@ void pager_update(void)
 		}
 		return;
 	}
+	
+	
 	if (wl_list_empty(&rc.workspace_config.workspaces)) {
 		return;
 	}
@@ -664,4 +889,5 @@ void pager_update(void)
 		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
 		wlr_buffer_drop(&buffer->base);
 	}
+	icons_update();
 }
