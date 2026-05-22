@@ -463,6 +463,13 @@ void icons_update(void)
 	wl_list_for_each(output, &server.outputs, link) {		
 		if (output->icons_osd) {
 			// Do we have to iterate through the children-- likely one per icon and one per cairo-border-box?
+			
+			struct wlr_scene_node *node, *tmpnode;
+				wl_list_for_each_safe(node, tmpnode, &output->icons_osd->children, link) {	
+					
+					printf("At 469, deleting...%lx\n", node);
+					wlr_scene_node_destroy(node);
+				}
 			wlr_scene_node_destroy(&output->icons_osd->node);
 			output->icons_osd = NULL;
 		}
