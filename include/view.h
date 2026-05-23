@@ -186,8 +186,8 @@ struct view {
 	bool mapped;
 	bool been_mapped;
 	bool icon_mapped;
-	int icon_x;
-	int icon_y;
+	float icon_x;
+	float icon_y;
 	uint64_t creation_id;
 	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;

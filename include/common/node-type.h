@@ -64,7 +64,8 @@ enum lab_node_type {
 	 * ssd_get_resizing_type()
 	 */
 	LAB_NODE_SSD_ROOT,
-	LAB_NODE_PAGER
+	LAB_NODE_PAGER,
+	LAB_NODE_DESKTOP_ICON
 };
 
 enum lab_node_type node_type_parse(const char *context);

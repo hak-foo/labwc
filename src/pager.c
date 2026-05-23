@@ -35,7 +35,9 @@
 #include "pager.h"
 
 float pager_drag_start_x, pager_drag_start_y;
+float icon_drag_start_x, icon_drag_start_y;
 struct view *active_drag_view;
+struct view *active_drag_icon;
 
 unsigned char *pixel_data;
 
@@ -190,6 +192,35 @@ void process_pager_release(float sx, float sy)
 	pager_update();
 }
 
+
+void process_icon_release(float sx, float sy)
+{
+	active_drag_icon = NULL;
+	icons_update();
+}
+
+
+
+void process_icon_move(float sx, float sy, struct view *found_view)
+{
+	if (found_view) {
+		float delta_x = (sx - icon_drag_start_x);
+		float delta_y = (sy - icon_drag_start_y);
+		found_view->icon_x += delta_x;
+		found_view->icon_y += delta_y;
+		icons_update();
+	}
+}
+
+void process_icon_drag(float sx, float sy)
+{
+	if (active_drag_icon)  {
+		process_icon_move(sx, sy, active_drag_icon);		
+	}
+}
+
+
+
 void process_pager_drag(float sx, float sy)
 {
 	if (sx < rc.theme->pager_border_width ||
@@ -243,6 +274,14 @@ void process_pager_press(float sx, float sy)
 	active_drag_view = found_view;
 }
 
+
+
+void process_icon_press(float sx, float sy, struct view *found_view)
+{
+	icon_drag_start_x = sx;
+	icon_drag_start_y = sy;
+	active_drag_icon = found_view;
+}
 static void
 render_node_sized(struct wlr_render_pass *pass,
 		struct wlr_scene_node *node, int x, int y, float sx, float sy)
@@ -461,29 +500,24 @@ void icons_update(void)
 
 
 	wl_list_for_each(output, &server.outputs, link) {		
+		if (!output_is_usable(output)) {
+			continue;
+		}
+
 		if (output->icons_osd) {
-			// Do we have to iterate through the children-- likely one per icon and one per cairo-border-box?
-			
+			// Kill off all the icon images
 			struct wlr_scene_node *node, *tmpnode;
-				wl_list_for_each_safe(node, tmpnode, &output->icons_osd->children, link) {	
-					
-					printf("At 469, deleting...%lx\n", node);
-					wlr_scene_node_destroy(node);
-				}
-			wlr_scene_node_destroy(&output->icons_osd->node);
-			output->icons_osd = NULL;
+			wl_list_for_each_safe(node, tmpnode, &output->icons_osd->children, link) {	
+				wlr_scene_node_destroy(node);
+			}
 		}
 		if (!output->icons_osd) {
 			output->icons_osd = lab_wlr_scene_tree_create(
 				&server.scene->tree);
-			node_descriptor_create(&output->icons_osd->node, LAB_NODE_PAGER, NULL, 0); // Change to icon node
 		}
 	
 	
 	
-		if (!output_is_usable(output)) {
-			continue;
-		}
 
 		struct lab_data_buffer *buffer = buffer_create_cairo(iconswidth,
 			iconsheight, output->wlr_output->scale);
@@ -643,6 +677,8 @@ void icons_update(void)
 		
 					wlr_scene_node_set_position(&scene_buffer->node, border_fbox.x, border_fbox.y);
 						
+					node_descriptor_create(&icon_buffer->scene_buffer->node, LAB_NODE_DESKTOP_ICON, view, 0);
+					node_descriptor_create(&scene_buffer->node, LAB_NODE_DESKTOP_ICON, view, 0);
 						
 				
 		
