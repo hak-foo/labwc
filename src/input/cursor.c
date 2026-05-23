@@ -666,7 +666,7 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 		}
 	}
 	
-	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
+	if (ctx.type == LAB_NODE_DESKTOP_ICON || active_drag_icon) {
 		// We need to set cursor type here so we don't have a dangling "old" cursor
 		// if you move from a window into the pager.
 		if (active_drag_icon) {
@@ -674,11 +674,11 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 		} else {
 			cursor_set(&server.seat, LAB_CURSOR_DEFAULT);
 		}
-		if (ctx.view != active_drag_icon) {
+		if (ctx.type == LAB_NODE_DESKTOP_ICON && ctx.view != active_drag_icon) {
 			// Don't jump to another icon midway
 			return false;
 		}
-		process_icon_drag(ctx.sx, ctx.sy);
+		process_icon_drag(seat->cursor->x, seat->cursor->y);
 		return false;
 	} else {
 		if (active_drag_icon) {
@@ -1204,7 +1204,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	}
 	
 	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
-		process_icon_press(ctx.sx, ctx.sy, ctx.view);
+		process_icon_press(seat->cursor->x, seat->cursor->y, ctx.view);
 		return false;
 	}
 

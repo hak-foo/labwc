@@ -206,8 +206,8 @@ void process_icon_move(float sx, float sy, struct view *found_view)
 	if (found_view) {
 		float delta_x = (sx - icon_drag_start_x);
 		float delta_y = (sy - icon_drag_start_y);
-		found_view->icon_x += delta_x;
-		found_view->icon_y += delta_y;
+		found_view->icon_x = delta_x;
+		found_view->icon_y = delta_y;
 		icons_update();
 	}
 }
@@ -278,8 +278,8 @@ void process_pager_press(float sx, float sy)
 
 void process_icon_press(float sx, float sy, struct view *found_view)
 {
-	icon_drag_start_x = sx;
-	icon_drag_start_y = sy;
+	icon_drag_start_x = sx - found_view->icon_x;
+	icon_drag_start_y = sy - found_view->icon_y;
 	active_drag_icon = found_view;
 }
 static void
@@ -673,13 +673,20 @@ void icons_update(void)
 					scaled_icon_buffer_set_view(icon_buffer, view);
 				
 					wlr_scene_node_set_position(&icon_buffer->scene_buffer->node, border_fbox.x+(border_fbox.width-64)/2, border_fbox.y);
-		
+					
 		
 					wlr_scene_node_set_position(&scene_buffer->node, border_fbox.x, border_fbox.y);
+					if (view == active_drag_icon) {
+						wlr_scene_node_raise_to_top(&scene_buffer->node);
+						wlr_scene_node_raise_to_top(&icon_buffer->scene_buffer->node);
+					} else {
+						wlr_scene_node_lower_to_bottom(&icon_buffer->scene_buffer->node);
+						wlr_scene_node_lower_to_bottom(&scene_buffer->node);
+					}
 						
 					node_descriptor_create(&icon_buffer->scene_buffer->node, LAB_NODE_DESKTOP_ICON, view, 0);
 					node_descriptor_create(&scene_buffer->node, LAB_NODE_DESKTOP_ICON, view, 0);
-						
+					wlr_buffer_drop(&cbuffer->base);
 				
 		
 					
