@@ -467,7 +467,7 @@ unsigned char *get_thumbnail_cache(
 void icons_update(void)
 {
 	struct output *output;
-	if (!(1)) { //change rc.icons_enabled
+	if (!rc.icons_enabled) {
 		wl_list_for_each(output, &server.outputs, link) {
 			if (!output_is_usable(output)) {
 				continue;
@@ -484,7 +484,7 @@ void icons_update(void)
 	}
 	struct theme *theme = rc.theme;
 	
-	// TODO:  Pull from RC instead
+
 	int x_spacing = rc.icon_x_spacing;
 	int y_spacing = rc.icon_y_spacing;
 	int left_offset = rc.icon_left_offset;
@@ -508,7 +508,7 @@ void icons_update(void)
 	int rows = screenheight / y_spacing;
 	int cols = screenwidth / x_spacing;
 	
-	int font_h = font_height(&rc.font_pager); // TODO: change to a custom font for icons
+	int font_h = font_height(&rc.font_icon);
 
 	
 
@@ -602,25 +602,25 @@ void icons_update(void)
 					// Prepare border/caption styles that differ
 					// for minimized/normal windows
 					float *bc =
-						theme->pager_color_window;
+						theme->icon_color;
 
 					int bw =
-						theme->pager_window_border_width;
+						theme->icon_border_width;
 
 					int highlight =
-						theme->pager_window_highlight;
+						theme->icon_highlight;
 
 					int shadow =
-						theme->pager_window_shadow;
+						theme->icon_shadow;
 
 					enum border_type bt =
-						theme->pager_window_border_type;
+						theme->icon_border_type;
 
 					int bvw =
-						theme->pager_window_bevel_width;
+						theme->icon_bevel_width;
 
 					float *tc =
-						theme->pager_color_window_title;
+						theme->icon_title_color;
 
 					
 					set_cairo_color(cairo, bc);
@@ -649,11 +649,11 @@ void icons_update(void)
 						layout,
 						PANGO_ELLIPSIZE_END);
 					int req_width = font_width(
-						&rc.font_pager,
+						&rc.font_icon,
 						view->title);
 					PangoFontDescription *desc =
 						font_to_pango_desc(
-							&rc.font_pager);
+							&rc.font_icon);
 
 					set_cairo_color(cairo, tc);
 

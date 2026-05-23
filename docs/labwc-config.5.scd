@@ -666,7 +666,8 @@ extending outward from the snapped edge.
 	- MenuHeader - menu title
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
-	- Pager - window models in the pager.
+	- Pager - window models in the pager
+	- Icon - icons on desktop
 	If no place attribute is provided, the setting will be applied to all
 	places.
 
@@ -1483,15 +1484,49 @@ situation.
 ## PAGER
 
 ```
-  <pager enabled="true" x="700" y="50" width="300" height="300" thumbnail="true"/>
+<pager enabled="true" x="700" y="50" width="300" height="300" 
+	thumbnail="true"/>
 ```
-	*enabled* determines whether or not to show the minimap pager.  Workspaces are shown verticaly stacked.  Windows can be clicked to raise, dragged to move.  Clicking the empty area of the pager will switch to the relevant workspace.
+
+*enabled* determines whether or not to show the minimap pager.  
+	Workspaces are shown verticaly stacked.  Windows can be clicked to
+	raise, dragged to move.  Clicking the empty area of the pager will
+	switch to the relevant workspace.
+
+*thumbnail* will ignore the styling rules in the theme and render
+	minature versions of the windows
+
+*x* and *y* are the position of the top corner of the pager
+
+*width* and *height* are the dimensions of the pager, split evenly
+	among each workspace.
+
+## DESKTOP ICONS
+
+```
+   <icons enabled="true" xSpacing="100" ySpacing="120" leftOffset="20" 
+	bottomOffset="30" width="90" height="110" imageSize="64" />
+```
+
+If enabled, icons use the same icon logic as used for the "menu" button.
+	They are laid out starting at the bottom left corner and moving
+	right, then	up a row once reaching the edge of the screen.
 	
-	*thumbnail* will ignore the styling rules in the theme and render minature versions of the windows
+*enabled* determines whether or not to show desktop icons.  
+
+*xSpacing* and *ySpacing* provides the default grid for laying out icons
+
+*leftOffset* and *bottomOffset* shift the grid from the bottom left
+	corner.
+
+*width* and *height* control the overall dimensions of the individual
+	icon.
 	
-	*x* and *y* are the position of the top corner of the pager
+*imageSize* represents the size of the graphic to try to load for the
+	icon.  It will be placed in the upper centre of the icon "box".
 	
-	*width* and *height* are the dimensions of the pager, split evenly among each workspace.
+
+
 
 ## PRIVILEGED INTERFACES
 

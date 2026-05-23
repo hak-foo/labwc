@@ -833,6 +833,14 @@ theme_builtin(struct theme *theme)
 	theme->pager_minimized_window_highlight = 128;
 	theme->pager_minimized_window_shadow = 64;
 
+
+	parse_hexstr("#808080", theme->icon_color);
+	parse_hexstr("#000000", theme->icon_title_color);
+	theme->icon_bevel_width = 0;
+	theme->icon_border_type = BORDER_NONE;
+	theme->icon_highlight = 128;
+	theme->icon_shadow = 64;
+	theme->icon_border_width = 0;
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
 		theme->snapping_overlay_region.bg_enabled = false;
@@ -860,6 +868,7 @@ theme_builtin(struct theme *theme)
 	/* magnifier */
 	parse_hexstr("#ff0000", theme->mag_border_color);
 	theme->mag_border_width = 1;
+	
 }
 
 static int
@@ -1583,6 +1592,37 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "pager.minimized") && parse_border_type(value)) {
 		theme->pager_minimized_window_border_type = parse_border_type(value);
+	}
+
+	if (match_glob(key, "icon.color")) {
+		parse_color(value, theme->icon_color);
+	}
+	if (match_glob(key, "icon.title_color")) {
+		parse_color(value, theme->icon_title_color);
+	}
+	if (match_glob(key, "icon.border") && parse_border_type(value)) {
+		theme->icon_border_type = parse_border_type(value);
+	}
+
+	if (match_glob(key, "icon.border.width")) {
+		theme->icon_border_width =
+			get_int_if_positive(
+				value, "icon.border.width");
+	}
+	if (match_glob(key, "icon.border.bevel-width")) {
+		theme->icon_bevel_width =
+			get_int_if_positive(
+				value, "icon.border.bevel-width");
+	}
+	if (match_glob(key, "icon.highlight")) {
+		theme->icon_highlight =
+			get_int_if_positive(
+				value, "icon.highlight");
+	}
+	if (match_glob(key, "icon.shadow")) {
+		theme->icon_shadow =
+			get_int_if_positive(
+				value, "icon.shadow");
 	}
 
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {

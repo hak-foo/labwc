@@ -227,6 +227,16 @@ struct theme {
 	int pager_minimized_window_bevel_width;
 	int pager_minimized_window_highlight;
 	int pager_minimized_window_shadow;
+	
+	
+	float icon_color[4];
+	float icon_title_color[4];
+	int icon_border_width;
+	enum border_type icon_border_type;
+	int icon_bevel_width;
+	int icon_highlight;
+	int icon_shadow;
+	
 
 	struct window_switcher_classic_theme {
 		int width;

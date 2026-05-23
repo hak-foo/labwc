@@ -121,6 +121,7 @@ struct rcxml {
 	struct font font_menuitem;
 	struct font font_osd;
 	struct font font_pager;
+	struct font font_icon;
 
 	/* Pointer to current theme */
 	struct theme *theme;
