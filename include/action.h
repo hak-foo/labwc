@@ -55,4 +55,8 @@ bool action_check_prompt_result(pid_t pid, int exit_code);
 void action_free(struct action *action);
 void action_list_free(struct wl_list *action_list);
 
+void
+show_menu(struct view *view, struct cursor_context *ctx,
+		const char *menu_name, bool at_cursor,
+		const char *pos_x, const char *pos_y);
 #endif /* LABWC_ACTION_H */

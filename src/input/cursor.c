@@ -13,6 +13,7 @@
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_subcompositor.h>
+#include <linux/input-event-codes.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/region.h>
@@ -1283,7 +1284,9 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	
 	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
 		process_icon_release(ctx.sx, ctx.sy);
-		if (is_double_click(rc.doubleclick_time, 1, &ctx)) {
+		if (button == BTN_RIGHT) {
+			show_menu(ctx.view, &ctx, "icon-menu", TRUE, 0, 0);
+		} else if (is_double_click(rc.doubleclick_time, BTN_LEFT, &ctx)) {
 			view_minimize(ctx.view, FALSE);
 		}
 		return false;

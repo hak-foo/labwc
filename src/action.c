@@ -716,7 +716,7 @@ action_list_free(struct wl_list *action_list)
 	}
 }
 
-static void
+void
 show_menu(struct view *view, struct cursor_context *ctx,
 		const char *menu_name, bool at_cursor,
 		const char *pos_x, const char *pos_y)
