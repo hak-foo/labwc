@@ -23,6 +23,7 @@
     -->
   </core>
 
+  <icons enabled="false" xSpacing="90" ySpacing="100" leftOffset="10" bottomOffset="0" width="80" height="90" imageSize="64" />
   <placement>
     <policy>cascade</policy>
     <!--
@@ -697,5 +698,5 @@
     <increment>0.2</increment>
     <useFilter>yes</useFilter>
   </magnifier>
-  <pager enabled="true" x="700" y="50" width="300" height="300" />
+  <pager enabled="false" x="0" y="0" width="100" height="100" />
 </labwc_config>

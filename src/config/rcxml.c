@@ -1683,6 +1683,7 @@ rcxml_init(void)
 	rc.pager_y = 0;
 	rc.pager_width = 100;
 	rc.pager_height = 100;
+	rc.icons_enabled = false;
 	rc.icon_x_spacing = 90;
 	rc.icon_y_spacing = 100;
 	rc.icon_left_offset = 10;
