@@ -743,6 +743,33 @@ all are supported.
 *pager.minimized.title*
 	Colour of the title text on minimized window models.  Default is #000000.
 	
+# DESKTOP ICONS
+
+*icon.color*
+	Color of the icon box. Default is #808080.
+
+*icon.title-color*
+	Color of the text on the icon.  Default is #000000.
+
+*icon.border*  (Raised | Sunken | DoubleRaised | DoubleSunken | Flat | None)
+	Beveled texture applied to icon boxes.  Default is None
+
+*icon.border.width*
+	Width of the border applied to icon boxes.  Default is 0.
+
+*icon.border.bevel-width*
+	Width of the sub-bevel applied to icons where the texture is *DoubleRaised*
+	or *DoubleSunken*.  Default is 0.
+
+*icon.highlight*
+	The brightness factor applied to the raised bevels of icon boxes.
+	Default is 128.
+
+*icon.shadow*
+	The brightness factor applied to the sunken bevels of icon boxes.
+	Default is 64.
+
+
 
 # BUTTONS
 

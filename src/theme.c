@@ -1597,7 +1597,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "icon.color")) {
 		parse_color(value, theme->icon_color);
 	}
-	if (match_glob(key, "icon.title_color")) {
+	if (match_glob(key, "icon.title-color")) {
 		parse_color(value, theme->icon_title_color);
 	}
 	if (match_glob(key, "icon.border") && parse_border_type(value)) {
