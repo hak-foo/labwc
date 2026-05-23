@@ -1206,7 +1206,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 	
 	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
 		process_icon_press(seat->cursor->x, seat->cursor->y, ctx.view);
-		return false;
+		// continue for bindings
 	}
 
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
@@ -1269,6 +1269,7 @@ bool
 cursor_process_button_release(struct seat *seat, uint32_t button,
 		uint32_t time_msec)
 {
+	
 	struct cursor_context ctx = get_cursor_context();
 	struct wlr_surface *pressed_surface = seat->pressed.ctx.surface;
 
@@ -1277,19 +1278,18 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 
 	cursor_context_save(&seat->pressed, NULL);
 
+
 	if (ctx.type == LAB_NODE_PAGER) {
 		process_pager_release(ctx.sx, ctx.sy);
 		return false;
 	}
 	
-	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
+	// In a situation where a binding deiconifies the window,
+	// the release may not be associated with the icon anymore
+	// but we need to deactivate the icon
+	if (ctx.type == LAB_NODE_DESKTOP_ICON || active_drag_icon) {
 		process_icon_release(ctx.sx, ctx.sy);
-		if (button == BTN_RIGHT) {
-			show_menu(ctx.view, &ctx, "icon-menu", TRUE, 0, 0);
-		} else if (is_double_click(rc.doubleclick_time, BTN_LEFT, &ctx)) {
-			view_minimize(ctx.view, FALSE);
-		}
-		return false;
+		// May need to continue for bound events after releasing drag.
 	}
 
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
