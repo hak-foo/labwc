@@ -483,18 +483,32 @@ void icons_update(void)
 		return;
 	}
 	struct theme *theme = rc.theme;
-	int iconswidth = 500; //change rc.icons_width;
-	int iconsheight = 200; //change rc.icons_height;
-	int x = 30; //change rc.icons_x;
-	int y = 300; //change rc.icons_y;
-
+	
+	// TODO:  Pull from RC instead
+	int x_spacing = 90;
+	int y_spacing = 100;
+	int left_offset = 10;
+	int bottom_offset = 0;
+	int icon_width = 80;
+	int icon_height = 90;
+	int graphic_size = 64;
+	
+	
+	
+	
 	struct workspace *workspace;
 	struct view *view;
 	struct wlr_box overall_box = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
 		NULL, &overall_box);
-
-	int font_h = font_height(&rc.font_pager); // change to a custom font for icons
+	int screenwidth = overall_box.width - overall_box.x - left_offset;
+	// Trim the bottom row off the screen height to ensure we always stay on screen
+	int screenheight = overall_box.height - overall_box.y - bottom_offset - y_spacing;
+	
+	int rows = screenheight / y_spacing;
+	int cols = screenwidth / x_spacing;
+	
+	int font_h = font_height(&rc.font_pager); // TODO: change to a custom font for icons
 
 	
 
@@ -515,57 +529,52 @@ void icons_update(void)
 			output->icons_osd = lab_wlr_scene_tree_create(
 				&server.scene->tree);
 		}
-	
-	
-	
-
-		struct lab_data_buffer *buffer = buffer_create_cairo(iconswidth,
-			iconsheight, output->wlr_output->scale);
-		if (!buffer) {
-			wlr_log(WLR_ERROR, "Failed to allocate buffer for icons");
-			continue;
-		}
-
-		
-		int wscount = 0;
-		
-		
+			
+		int wscount = 0;	
 		
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
-			int highest_x = 0;
-			int highest_y = 0;
-			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+			unsigned char *icon_map = malloc(rows * cols);
+			memset(icon_map, 0, rows*cols);
+			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
 				if (view->workspace == server.workspaces.current && view->minimized) {
 					if (view->icon_mapped) {
-						if (view->icon_y >= highest_y) {
-							highest_x = 0;
-							highest_y = view->icon_y;
-						}
-						if (view->icon_x >= highest_x && view->icon_y >= highest_y) {
-							highest_x = view->icon_x + 80 + 10; // width + spacing
-						}
-						if (highest_x + 80 >= iconswidth) { //width
-							highest_x = 0;
-						highest_y += 120 + 10; // width + spacing;
-						}
+						int icon_x = (view->icon_x - left_offset) / x_spacing;
+						int icon_y = (screenheight - view->icon_y) / y_spacing;
+						icon_map[icon_y * cols + icon_x]++;
 					}
 				}
 			}
 			
 
-			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
 				if (view->workspace == server.workspaces.current && view->minimized) {
-					if (!view->icon_mapped) {						
-						view->icon_x = highest_x;
-						view->icon_y = highest_y;
+					int retries = 0;
+					while (!view->icon_mapped && retries < 30) {
+						for (int i = 0; i < rows && view->icon_mapped == FALSE; i++) {
+							for (int j = 0; j < cols  && view->icon_mapped == FALSE; j++) {
+								if (icon_map[i * cols + j] <= retries) {
+									view->icon_x = j * x_spacing + left_offset + 3 * retries;
+									view->icon_y = screenheight - (i * y_spacing) + 3 * retries;
+									view->icon_mapped = TRUE;
+									icon_map[i * cols + j]++;
+								}
+							}
+						}
+						// Try the next layer of icons over.
+						retries++;
+					}
+					// Last chance effort, just place it anywhere.
+					if (!view->icon_mapped) {
+						view->icon_x = left_offset;
+						view->icon_y = screenheight - y_spacing;
 						view->icon_mapped = TRUE;
-					}	
+					}
 						
 							
 					// Determine dimensions for mini-window (common)
 					struct wlr_fbox border_fbox = {
-						.width = 80,
-						.height = 110,
+						.width = icon_width,
+						.height = icon_height,
 						.x = view->icon_x,
 						.y = view->icon_y
 					};
@@ -650,7 +659,7 @@ void icons_update(void)
 						(border_fbox.width
 								- req_width) / 2,
 						(border_fbox.height
-								- font_h) - 3);
+								- font_h) - bw - 2);
 					
 					pango_layout_set_font_description(
 						layout,
@@ -669,10 +678,10 @@ void icons_update(void)
 					cairo_destroy(cairo);
 					
 					struct scaled_icon_buffer *icon_buffer =
-					scaled_icon_buffer_create(output->icons_osd, 64, 64);
+					scaled_icon_buffer_create(output->icons_osd, graphic_size, graphic_size);
 					scaled_icon_buffer_set_view(icon_buffer, view);
-				
-					wlr_scene_node_set_position(&icon_buffer->scene_buffer->node, border_fbox.x+(border_fbox.width-64)/2, border_fbox.y);
+
+					wlr_scene_node_set_position(&icon_buffer->scene_buffer->node, border_fbox.x+(border_fbox.width-graphic_size)/2, border_fbox.y+bw+2);
 					
 		
 					wlr_scene_node_set_position(&scene_buffer->node, border_fbox.x, border_fbox.y);
@@ -694,18 +703,17 @@ void icons_update(void)
 				
 				}
 			}
+			free(icon_map);
 			wscount++;
 		}
 		
 
 	
 		if (output->icons_osd) {
-		wlr_scene_node_set_enabled(&output->icons_osd->node, true);
+			wlr_scene_node_set_enabled(&output->icons_osd->node, true);
 
-		wlr_scene_node_set_position(&output->icons_osd->node, x, y);
-		wlr_scene_node_place_below(&output->icons_osd->node, &output->layer_tree[1]->node);
-		
-		wlr_buffer_drop(&buffer->base);
+			wlr_scene_node_set_position(&output->icons_osd->node, 0, 0);
+			wlr_scene_node_place_below(&output->icons_osd->node, &output->layer_tree[1]->node);
 		}
 	}
 }
