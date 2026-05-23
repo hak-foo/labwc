@@ -535,7 +535,7 @@ void icons_update(void)
 			int highest_x = 0;
 			int highest_y = 0;
 			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == workspace && view->minimized) {
+				if (view->workspace == server.workspaces.current && view->minimized) {
 					if (view->icon_mapped) {
 						if (view->icon_y >= highest_y) {
 							highest_x = 0;
@@ -554,7 +554,7 @@ void icons_update(void)
 			
 
 			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == workspace && view->minimized) {
+				if (view->workspace == server.workspaces.current && view->minimized) {
 					if (!view->icon_mapped) {						
 						view->icon_x = highest_x;
 						view->icon_y = highest_y;
