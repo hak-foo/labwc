@@ -34,6 +34,7 @@
 #include "wlr/util/log.h"
 #include "workspaces.h"
 #include "pager.h"
+#include "icons.h"
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
@@ -499,6 +500,7 @@ view_set_output(struct view *view, struct output *output)
 	}
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 void
@@ -510,6 +512,7 @@ view_close(struct view *view)
 	}
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 static void
@@ -533,6 +536,7 @@ view_update_outputs(struct view *view)
 	}
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 bool
@@ -576,6 +580,7 @@ view_moved(struct view *view)
 	}
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 void
@@ -823,6 +828,7 @@ view_minimize(struct view *view, bool minimized)
 	}
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 bool
@@ -2327,6 +2333,7 @@ view_set_title(struct view *view, const char *title)
 	wl_signal_emit_mutable(&view->events.new_title, NULL);
 	pager_flush(view);
 	pager_update();
+	icons_update();
 }
 
 void
@@ -2606,4 +2613,5 @@ view_destroy(struct view *view)
 
 	cursor_update_focus();
 	pager_update();
+	icons_update();
 }

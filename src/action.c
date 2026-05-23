@@ -35,6 +35,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "pager.h"
+#include "icons.h"
 
 enum action_arg_type {
 	LAB_ACTION_ARG_STR = 0,
@@ -1671,4 +1672,5 @@ actions_run(struct view *activator, struct wl_list *actions, struct cursor_conte
 	}
 
 	pager_update();
+	icons_update();
 }

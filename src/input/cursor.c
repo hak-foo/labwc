@@ -39,6 +39,7 @@
 #include "view.h"
 #include "xwayland.h"
 #include "pager.h"
+#include "icons.h"
 
 #if WLR_HAS_LIBINPUT_BACKEND
 	#include <wlr/backend/libinput.h>

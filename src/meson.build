@@ -5,6 +5,7 @@ labwc_sources = files(
   'desktop.c',
   'dnd.c',
   'edges.c',
+  'icons.c',
   'idle.c',
   'interactive.c',
   'layers.c',
