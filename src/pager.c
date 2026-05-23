@@ -485,13 +485,13 @@ void icons_update(void)
 	struct theme *theme = rc.theme;
 	
 	// TODO:  Pull from RC instead
-	int x_spacing = 90;
-	int y_spacing = 100;
-	int left_offset = 10;
-	int bottom_offset = 0;
-	int icon_width = 80;
-	int icon_height = 90;
-	int graphic_size = 64;
+	int x_spacing = rc.icon_x_spacing;
+	int y_spacing = rc.icon_y_spacing;
+	int left_offset = rc.icon_left_offset;
+	int bottom_offset = rc.icon_bottom_offset;
+	int icon_width = rc.icon_width;
+	int icon_height = rc.icon_height;
+	int graphic_size = rc.icon_graphic_size;
 	
 	
 	

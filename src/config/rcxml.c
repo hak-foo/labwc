@@ -1495,6 +1495,26 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.pager_thumbnail);
 	} else if (!strcasecmp(nodename, "rotatedTitle.theme")) {
 		set_bool(content, &rc.rotated_title);
+	} else if (!strcasecmp(nodename, "enabled.icons")) {
+		/* <icons enabled="true" xSpacing="100" ySpacing="120"
+		 * leftOffset="20" bottomOffset="30" width="90" height="110"
+		 * imageSize="64" />
+		 */
+		set_bool(content, &rc.icons_enabled);
+	} else if (!strcasecmp(nodename, "xSpacing.icons")) {
+		rc.icon_x_spacing = atoi(content);
+	} else if (!strcasecmp(nodename, "ySpacing.icons")) {
+		rc.icon_y_spacing = atoi(content);
+	} else if (!strcasecmp(nodename, "leftOffset.icons")) {
+		rc.icon_left_offset = atoi(content);
+	} else if (!strcasecmp(nodename, "bottomOffset.icons")) {
+		rc.icon_bottom_offset = atoi(content);
+	} else if (!strcasecmp(nodename, "width.icons")) {
+		rc.icon_width = atoi(content);
+	} else if (!strcasecmp(nodename, "height.icons")) {
+		rc.icon_height = atoi(content);
+	} else if (!strcasecmp(nodename, "imageSize.icons")) {
+		rc.icon_graphic_size = atoi(content);
 	}
 
 	return false;
@@ -1656,6 +1676,13 @@ rcxml_init(void)
 	rc.pager_y = 0;
 	rc.pager_width = 100;
 	rc.pager_height = 100;
+	rc.icon_x_spacing = 90;
+	rc.icon_y_spacing = 100;
+	rc.icon_left_offset = 10;
+	rc.icon_bottom_offset = 0;
+	rc.icon_width = 80;
+	rc.icon_height = 90;
+	rc.icon_graphic_size = 64;
 }
 
 static void

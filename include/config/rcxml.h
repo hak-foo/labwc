@@ -226,6 +226,14 @@ struct rcxml {
 	bool pager_thumbnail;
 	int pager_x, pager_y, pager_width, pager_height;
 	bool rotated_title;
+	bool icons_enabled;
+	int icon_x_spacing;
+	int icon_y_spacing;
+	int icon_left_offset;
+	int icon_bottom_offset;
+	int icon_width;
+	int icon_height;
+	int icon_graphic_size;
 };
 
 /* defined in main.c */
