@@ -533,6 +533,9 @@ void icons_update(void)
 		int wscount = 0;	
 		
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
+			
+			// Note that the icon map is "bottom to top" - row 0 is the
+			// lowest row on the screen
 			unsigned char *icon_map = malloc(rows * cols);
 			memset(icon_map, 0, rows*cols);
 			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
@@ -540,7 +543,11 @@ void icons_update(void)
 					if (view->icon_mapped) {
 						int icon_x = (view->icon_x - left_offset) / x_spacing;
 						int icon_y = (screenheight - view->icon_y) / y_spacing;
-						icon_map[icon_y * cols + icon_x]++;
+						if (icon_x >=0 && icon_x < cols && icon_y >=0 && icon_y < rows) {
+							icon_map[icon_y * cols + icon_x]++;
+						}
+						// To consider:  We could block out nearby map squares if the icon is off grid
+						
 					}
 				}
 			}
