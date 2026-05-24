@@ -15,7 +15,7 @@ struct view;
 enum border_type;
 
 void icons_update(void);
-void process_icon_release(float sx, float sy);;
+void process_icon_release(void);
 void process_icon_drag(float sx, float sy);
 void process_icon_press(float sx, float sy, struct view *found_view);
 void process_icon_move(float sx, float sy, struct view *found_view);

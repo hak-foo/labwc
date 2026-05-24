@@ -18,6 +18,8 @@ node_type_parse(const char *context)
 		return LAB_NODE_BUTTON_WINDOW_ICON;
 	} else if (!strcasecmp(context, "DesktopIcon")) {
 		return LAB_NODE_DESKTOP_ICON;
+	} else if (!strcasecmp(context, "PagerWindow")) {
+		return LAB_NODE_PAGER_WINDOW;
 	} else if (!strcasecmp(context, "Shade")) {
 		return LAB_NODE_BUTTON_SHADE;
 	} else if (!strcasecmp(context, "AllDesktops")) {

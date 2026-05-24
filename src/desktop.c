@@ -430,6 +430,10 @@ get_cursor_context(void)
 			case LAB_NODE_PAGER:
 				ret.type = LAB_NODE_PAGER;
 				return ret;
+			case LAB_NODE_PAGER_WINDOW:
+				ret.type = LAB_NODE_PAGER_WINDOW;
+				ret.view = desc->view;
+				return ret;
 			case LAB_NODE_DESKTOP_ICON:
 				ret.type = LAB_NODE_DESKTOP_ICON;
 				ret.view = desc->view;

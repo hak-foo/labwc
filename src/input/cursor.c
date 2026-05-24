@@ -557,8 +557,8 @@ cursor_update_common(const struct cursor_context *ctx,
 		return;
 	}
 
-	if (ctx->type == LAB_NODE_PAGER) {
-		// The pager manages its own cursor choices
+	if (ctx->type == LAB_NODE_PAGER_WINDOW) {
+		// The pager windows manage their own cursor choices
 		return;
 	}
 	if (ctx->type == LAB_NODE_DESKTOP_ICON) {
@@ -651,7 +651,7 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 	struct cursor_context ctx = get_cursor_context();
 	struct seat *seat = &server.seat;
 
-	if (ctx.type == LAB_NODE_PAGER) {
+	if (ctx.type == LAB_NODE_PAGER_WINDOW || active_drag_view) {
 		// We need to set cursor type here so we don't have a dangling "old" cursor
 		// if you move from a window into the pager.
 		if (active_drag_view) {
@@ -659,7 +659,7 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 		} else {
 			cursor_set(&server.seat, LAB_CURSOR_DEFAULT);
 		}
-		process_pager_drag(ctx.sx, ctx.sy);
+		process_pager_drag(seat->cursor->x, seat->cursor->y);
 		return false;
 	} else {
 		// Kill a pager drag if the cursor leaves the pager.
@@ -1205,6 +1205,11 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		return false;
 	}
 	
+	if (ctx.type == LAB_NODE_PAGER_WINDOW) {
+		process_pager_window_press(seat->cursor->x, seat->cursor->y, ctx.view);
+		// Allow potential bindings, like "click to raise"
+	}
+	
 	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
 		process_icon_press(seat->cursor->x, seat->cursor->y, ctx.view);
 		// continue for bindings
@@ -1280,16 +1285,16 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	cursor_context_save(&seat->pressed, NULL);
 
 
-	if (ctx.type == LAB_NODE_PAGER) {
-		process_pager_release(ctx.sx, ctx.sy);
-		return false;
+	if (ctx.type == LAB_NODE_PAGER_WINDOW || active_drag_view) {
+		process_pager_release();
+		// Allow fallthrough for bindings
 	}
 	
 	// In a situation where a binding deiconifies the window,
 	// the release may not be associated with the icon anymore
 	// but we need to deactivate the icon
 	if (ctx.type == LAB_NODE_DESKTOP_ICON || active_drag_icon) {
-		process_icon_release(ctx.sx, ctx.sy);
+		process_icon_release();
 		// May need to continue for bound events after releasing drag.
 	}
 

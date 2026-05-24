@@ -39,7 +39,7 @@ float icon_drag_start_x, icon_drag_start_y;
 struct view *active_drag_icon;
 
 
-void process_icon_release(float sx, float sy)
+void process_icon_release(void)
 {
 	active_drag_icon = NULL;
 	icons_update();

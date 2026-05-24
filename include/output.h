@@ -17,7 +17,7 @@ struct output {
 	struct wlr_scene_tree *cycle_osd_tree;
 	struct wlr_scene_tree *session_lock_tree;
 	struct wlr_scene_buffer *workspace_osd;
-	struct wlr_scene_buffer *pager_osd;
+	struct wlr_scene_tree *pager_osd;
 	struct wlr_scene_tree *icons_osd;
 
 	/* In output-relative scene coordinates */

@@ -65,7 +65,8 @@ enum lab_node_type {
 	 */
 	LAB_NODE_SSD_ROOT,
 	LAB_NODE_PAGER,
-	LAB_NODE_DESKTOP_ICON
+	LAB_NODE_DESKTOP_ICON,
+	LAB_NODE_PAGER_WINDOW
 };
 
 enum lab_node_type node_type_parse(const char *context);

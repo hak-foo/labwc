@@ -26,9 +26,10 @@ struct thumbnail_cache {
 void pager_flush(struct view *view);
 void pager_create(void);
 void pager_update(void);
-void process_pager_release(float sx, float sy);
+void process_pager_release(void);
 void process_pager_drag(float sx, float sy);
 void process_pager_press(float sx, float sy);
+void process_pager_window_press(float sx, float sy, struct view *found_view);
 void process_pager_move(float sx, float sy, struct view *found_view);
 struct view *find_pager_window(float sx, float sy);
 unsigned char *get_thumbnail_cache(struct output *output, struct view *view,
