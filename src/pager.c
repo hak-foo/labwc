@@ -133,7 +133,11 @@ void process_pager_move(float sx, float sy, struct view *found_view)
 	int screenwidth = overall_box.width - overall_box.x;
 	int screenheight = overall_box.height - overall_box.y;
 
-	float adj_pager_drag_start_y  = pager_drag_start_y - rc.pager_y - rc.theme->pager_border_width;
+	// sx/sy and pager_drag_start_x/y are seat-wide coordinates
+	// so if we need to find the right "workspace" we need to offset it
+	// by the position the pager lives in and its border.
+	// The other calculations are relative and don't care.
+	float adj_pager_drag_start_y = pager_drag_start_y - rc.pager_y - rc.theme->pager_border_width;
 	sy -= rc.pager_y;
 	sy -= rc.theme->pager_border_width;
 
