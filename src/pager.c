@@ -118,31 +118,6 @@ struct wlr_fbox thumbnail_size(struct view *view, int wscount)
 	return border_fbox;
 }
 
-struct view *find_pager_window(float sx, float sy)
-{
-	struct workspace *workspace;
-	struct view *view;
-
-	int wscount = 0;
-	wl_list_for_each(workspace, &server.workspaces.all, link) {
-		// Start at the top down
-		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-			if (view->workspace == workspace) {
-				struct wlr_fbox border_fbox =
-					thumbnail_size(view, wscount);
-				if (sx >= border_fbox.x && sy >= border_fbox.y &&
-					sx <= border_fbox.x+border_fbox.width &&
-					sy <= border_fbox.y+border_fbox.height) {
-					return view;
-				}
-			}
-		}
-		wscount++;
-	}
-
-	return NULL;
-}
-
 void process_pager_move(float sx, float sy, struct view *found_view)
 {
 	
