@@ -924,6 +924,8 @@ input-devices by the Wayland protocol.
 	  through to the application.
 	- Desktop: The desktop background, where no windows are present.
 	- Root: A synonym for Desktop (for compatibility).
+	- DesktopIcon: an iconified window
+	- PagerWindow: A mini-window on the pager
 	- All: Anywhere on the screen.
 
 	Supported mouse *buttons* are:
@@ -1489,8 +1491,8 @@ situation.
 ```
 
 *enabled* determines whether or not to show the minimap pager.  
-	Workspaces are shown verticaly stacked.  Windows can be clicked to
-	raise, dragged to move.  Clicking the empty area of the pager will
+	Workspaces are shown verticaly stacked.  Windows can be dragged to
+	move.  Clicking the empty area of the pager will
 	switch to the relevant workspace.
 
 *thumbnail* will ignore the styling rules in the theme and render
