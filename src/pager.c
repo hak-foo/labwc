@@ -177,14 +177,7 @@ void process_pager_release(void)
 }
 
 void process_pager_drag(float sx, float sy)
-{
-	if (sx < rc.pager_x + rc.theme->pager_border_width ||
-		sy < rc.pager_y + rc.theme->pager_border_width ||
-		sx > rc.pager_x + rc.pager_width - rc.theme->pager_border_width ||
-		sy > rc.pager_y + rc.pager_height - rc.theme->pager_border_width) {
-		return;
-	}
-	
+{	
 	sx -= rc.theme->pager_border_width;
 	sy -= rc.theme->pager_border_width;
 	if (active_drag_view) {
