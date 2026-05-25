@@ -235,6 +235,8 @@ struct rcxml {
 	int icon_width;
 	int icon_height;
 	int icon_graphic_size;
+	
+	bool menu_arrow_icon;
 };
 
 /* defined in main.c */

@@ -795,6 +795,7 @@ file within a particular theme. The following xbm buttons are supported:
 - desk_toggled.xbm
 - shade.xbm
 - shade_toggled.xbm
+- menu_arrow.xbm
 
 Additional icons can be defined to be shown when the mouse pointer is hovering
 over the button in question:
@@ -857,6 +858,7 @@ following icons should be added:
 - desk_toggled-inactive.[png|svg]
 - desk_toggled_hover-active.[png|svg]
 - desk_toggled_hover-inactive.[png|svg]
+- menu_arrow.[png|svg]
 
 # DEFINITIONS
 

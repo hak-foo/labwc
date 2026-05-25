@@ -30,6 +30,7 @@
 #include "output.h"
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
+#include "scaled-buffer/scaled-img-buffer.h"
 #include "theme.h"
 #include "translate.h"
 #include "view.h"
@@ -272,6 +273,9 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	int bg_width = menu->size.width - 2 * theme->menu_border_width;
 	int arrow_width = item->arrow ?
 		font_width(&rc.font_menuitem, item->arrow) + theme->menu_items_padding_x : 0;
+	if (rc.menu_arrow_icon) {
+		arrow_width = rc.theme->window_button_width;
+	}
 	int label_max_width = bg_width - 2 * theme->menu_items_padding_x
 		- arrow_width - icon_width;
 
@@ -354,15 +358,29 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 		return tree;
 	}
 
-	/* Create arrow for submenu items */
-	struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
-	assert(arrow_buffer);
-	scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
-		&rc.font_menuitem, text_color, bg_color);
-	/* Vertically center and right-align arrow */
-	x += label_max_width + theme->menu_items_padding_x;
-	y = (theme->menu_item_height - label_buffer->height) / 2;
-	wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);
+	if (rc.menu_arrow_icon) {
+		/* Create icon for submenu items */
+		struct scaled_img_buffer *arrow_buffer = scaled_img_buffer_create(
+			tree,
+			theme->menu_arrow_img,
+			rc.theme->window_button_width,
+			rc.theme->window_button_height);
+		assert(arrow_buffer);
+		/* Vertically center and right-align arrow */
+		x += label_max_width + theme->menu_items_padding_x;
+		y = (theme->menu_item_height - rc.theme->window_button_height) / 2;
+		wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);		
+	} else {
+		/* Create arrow for submenu items */
+		struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
+		assert(arrow_buffer);
+		scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
+			&rc.font_menuitem, text_color, bg_color);
+		/* Vertically center and right-align arrow */
+		x += label_max_width + theme->menu_items_padding_x;
+		y = (theme->menu_item_height - label_buffer->height) / 2;
+		wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);
+	}
 
 	return tree;
 }

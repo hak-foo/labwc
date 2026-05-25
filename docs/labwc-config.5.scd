@@ -1450,6 +1450,12 @@ situation.
 	Default is yes. Requires libsfdo. If labwc is built without it, no
 	icons will be shown.
 
+*<menu><arrowIcon>*
+	Use an arrow instead of a ">" character for a submenu.  If you 
+	use a custom icon, it should be named "menu_arrow.ext"
+	and be stored with theme images. It's expected to be sized like a
+	titlebar icon.
+	
 ## MAGNIFIER
 
 ```

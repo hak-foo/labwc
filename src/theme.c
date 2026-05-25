@@ -342,6 +342,53 @@ load_button(struct theme *theme, struct button *b, enum ssd_active_state active)
 	}
 }
 
+
+
+static void
+load_menu_arrow(struct theme *theme)
+{
+	
+	struct lab_img *img;
+	float *rgba = theme->menu_items_text_color;
+	char filename[4096];
+
+	assert(!img);
+
+	/* PNG */
+	get_button_filename(filename, sizeof(filename), "menu_arrow",
+		".png");
+	img = lab_img_load(LAB_IMG_PNG, filename, rgba);
+
+#if HAVE_RSVG
+	/* SVG */
+	if (!img) {
+		get_button_filename(filename, sizeof(filename), "menu_arrow", ".svg");
+		img = lab_img_load(LAB_IMG_SVG, filename, rgba);
+	}
+#endif
+
+	/* XBM */
+	if (!img) {
+		get_button_filename(filename, sizeof(filename), "menu_arrow", ".xbm");
+		img = lab_img_load(LAB_IMG_XBM, filename, rgba);
+	}
+
+
+	/*
+	 * Builtin bitmap
+	 *
+	 * Applicable to basic buttons such as max, max_toggled and iconify.
+	 * There are no bitmap fallbacks for *_hover icons.
+	 */
+	if (!img) {
+		const char fallback[] = {0x06, 0x0e, 0x1a, 0x1a, 0x0e, 0x06};
+		img = lab_img_load_from_bitmap(fallback, rgba);
+	}
+	
+	theme->menu_arrow_img = img;
+}
+
+
 /*
  * We use the following button filename schema: "BUTTON [TOGGLED] [STATE]"
  * with the words separated by underscore, and the following meaning:
@@ -2408,6 +2455,7 @@ theme_init(struct theme *theme, const char *theme_name)
 	create_backgrounds(theme);
 	create_corners(theme);
 	load_buttons(theme);
+	load_menu_arrow(theme);
 	create_shadows(theme);
 }
 

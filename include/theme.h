@@ -284,6 +284,8 @@ struct theme {
 	/* magnifier */
 	float mag_border_color[4];
 	int mag_border_width;
+	
+	struct lab_img *menu_arrow_img;
 };
 
 /**
