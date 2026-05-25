@@ -342,27 +342,23 @@ load_button(struct theme *theme, struct button *b, enum ssd_active_state active)
 	}
 }
 
-
-
 static void
-load_menu_arrow(struct theme *theme)
+load_menu_arrow_part(struct theme * theme, struct lab_img **target, bool active)
 {
-	
 	struct lab_img *img;
 	float *rgba = theme->menu_items_text_color;
 	char filename[4096];
 
-	assert(!img);
 
 	/* PNG */
 	get_button_filename(filename, sizeof(filename), "menu_arrow",
-		".png");
+		active ? "-active.png" : "-inactive.png");
 	img = lab_img_load(LAB_IMG_PNG, filename, rgba);
 
 #if HAVE_RSVG
 	/* SVG */
 	if (!img) {
-		get_button_filename(filename, sizeof(filename), "menu_arrow", ".svg");
+		get_button_filename(filename, sizeof(filename), "menu_arrow", active ? "-active.svg" : "-inactive.svg");
 		img = lab_img_load(LAB_IMG_SVG, filename, rgba);
 	}
 #endif
@@ -385,9 +381,15 @@ load_menu_arrow(struct theme *theme)
 		img = lab_img_load_from_bitmap(fallback, rgba);
 	}
 	
-	theme->menu_arrow_img = img;
+	*target = img;
 }
 
+static void
+load_menu_arrow(struct theme *theme)
+{
+	load_menu_arrow_part(theme, &theme->menu_arrow_img, FALSE);
+	load_menu_arrow_part(theme, &theme->menu_arrow_img_active, TRUE);
+}
 
 /*
  * We use the following button filename schema: "BUTTON [TOGGLED] [STATE]"

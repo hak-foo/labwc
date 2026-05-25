@@ -1451,9 +1451,8 @@ situation.
 	icons will be shown.
 
 *<menu><arrowIcon>*
-	Use an arrow instead of a ">" character for a submenu.  If you 
-	use a custom icon, it should be named "menu_arrow.ext"
-	and be stored with theme images. It's expected to be sized like a
+	Use an arrow instead of a ">" character for a submenu, using the
+	"menu_arrow" images in the theme. It's expected to be sized like a
 	titlebar icon.
 	
 ## MAGNIFIER

@@ -362,7 +362,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 		/* Create icon for submenu items */
 		struct scaled_img_buffer *arrow_buffer = scaled_img_buffer_create(
 			tree,
-			theme->menu_arrow_img,
+			state ? theme->menu_arrow_img_active : theme->menu_arrow_img,
 			rc.theme->window_button_width,
 			rc.theme->window_button_height);
 		assert(arrow_buffer);

@@ -286,6 +286,7 @@ struct theme {
 	int mag_border_width;
 	
 	struct lab_img *menu_arrow_img;
+	struct lab_img *menu_arrow_img_active;
 };
 
 /**

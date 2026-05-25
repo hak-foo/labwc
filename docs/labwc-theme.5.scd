@@ -858,7 +858,8 @@ following icons should be added:
 - desk_toggled-inactive.[png|svg]
 - desk_toggled_hover-active.[png|svg]
 - desk_toggled_hover-inactive.[png|svg]
-- menu_arrow.[png|svg]
+- menu_arrow-active.[png|svg]
+- menu_arrow-inactive.[png|svg]
 
 # DEFINITIONS
 
