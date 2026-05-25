@@ -255,19 +255,14 @@ void icons_update(void)
 					pango_layout_set_ellipsize(
 						layout,
 						PANGO_ELLIPSIZE_END);
-					int req_width = font_width(
-						&rc.font_icon,
-						view->title);
+					pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
 					PangoFontDescription *desc =
 						font_to_pango_desc(
 							&rc.font_icon);
 
 					set_cairo_color(cairo, tc);
 
-					req_width = MIN(req_width,
-						border_fbox.width -
-						2 * bw -2
-					);
+					int req_width = border_fbox.width - 2 * bw -2;
 
 					cairo_move_to(cairo,
 						(border_fbox.width
@@ -278,11 +273,27 @@ void icons_update(void)
 					pango_layout_set_font_description(
 						layout,
 						desc);
+					
 					pango_layout_set_width(layout,
 						req_width * PANGO_SCALE);
+					pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
+					pango_layout_set_height(layout,
+						(icon_height - 2 * bw - graphic_size - 6)
+						* PANGO_SCALE);
 					pango_font_description_free(desc);
 					pango_layout_set_text(layout,
 						view->title, -1);
+					
+					PangoRectangle prect = {0};
+					pango_layout_get_extents(layout, NULL, &prect);
+					cairo_move_to(cairo,
+						(border_fbox.width
+							- req_width) / 2,
+						(border_fbox.height
+							- prect.height/ PANGO_SCALE)
+							- bw - 2);
+						
+						
 					pango_cairo_show_layout(cairo,
 						layout);
 					g_object_unref(layout);
@@ -295,7 +306,10 @@ void icons_update(void)
 					scaled_icon_buffer_create(output->icons_osd, graphic_size, graphic_size);
 					scaled_icon_buffer_set_view(icon_buffer, view);
 
-					wlr_scene_node_set_position(&icon_buffer->scene_buffer->node, border_fbox.x+(border_fbox.width-graphic_size)/2, border_fbox.y+bw+2);
+					wlr_scene_node_set_position(
+						&icon_buffer->scene_buffer->node,
+						border_fbox.x+(border_fbox.width-graphic_size)/2,
+						border_fbox.y+bw+4);
 					
 		
 					wlr_scene_node_set_position(&scene_buffer->node, border_fbox.x, border_fbox.y);
