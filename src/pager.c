@@ -295,6 +295,11 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server.allocator,
 		sx*view->current.width, sy*view->current.height,
 		&output->wlr_output->swapchain->format);
+		
+	if(!buffer) {
+		return NULL;
+	}
+
 	struct wlr_render_pass *pass = wlr_renderer_begin_buffer_pass(
 		server.renderer, buffer, NULL);
 	render_node_sized(pass, &view->content_tree->node, 0, 0, sx, sy);
@@ -396,6 +401,9 @@ unsigned char *get_thumbnail_cache(
 				view->current.width,
 			border_fbox.height /
 				view->current.height);
+	if (!thumb_buffer) {
+		return NULL;
+	}
 	struct wlr_texture *thumb_texture =
 		wlr_texture_from_buffer(server.renderer,
 			thumb_buffer);
