@@ -177,12 +177,12 @@ ssd_border_update(struct ssd *ssd)
 		} else {
 			if (rc.rotated_title) {
 				wlr_scene_rect_set_size(subtree->left,
-					theme->border_width, side_height+2*theme->border_width);
+					theme->border_width, height+2*theme->border_width);
 				wlr_scene_node_set_position(&subtree->left->node,
 					-ssd->titlebar.height, -theme->border_width);
 
 				wlr_scene_rect_set_size(subtree->right,
-					theme->border_width, side_height+2*theme->border_width);
+					theme->border_width, height+2*theme->border_width);
 				wlr_scene_node_set_position(&subtree->right->node,
 					theme->border_width + width, -theme->border_width);
 
