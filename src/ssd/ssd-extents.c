@@ -23,8 +23,13 @@ ssd_extents_create(struct ssd *ssd)
 	if (view->fullscreen || view->maximized == VIEW_AXIS_BOTH) {
 		wlr_scene_node_set_enabled(&parent->node, false);
 	}
-	wlr_scene_node_set_position(&parent->node,
-		-border_width, -(ssd->titlebar.height + border_width));
+	if (rc.rotated_title) {
+		wlr_scene_node_set_position(&parent->node,
+			-(ssd->titlebar.height + border_width), -border_width);
+	} else {
+		wlr_scene_node_set_position(&parent->node,
+			-border_width, -(ssd->titlebar.height + border_width));
+	}
 
 	float invisible[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ssd->extents.top = lab_wlr_scene_rect_create(parent, 0, 0, invisible);
@@ -106,12 +111,22 @@ ssd_extents_update(struct ssd *ssd)
 	int height = view_effective_height(view, /* use_pending */ false);
 	int full_height = height + theme->border_width * 2 + ssd->titlebar.height;
 	int full_width = width + 2 * theme->border_width;
+	
+	if (rc.rotated_title) {
+		full_height -= ssd->titlebar.height;
+		full_width += ssd->titlebar.height;
+	}
 	int border_width = MAX(rc.resize_minimum_area, theme->border_width);
 	int extended_area = MAX(0, rc.resize_minimum_area - theme->border_width);
 
 	/* Make sure we update the y offset based on titlebar shown / hidden */
-	wlr_scene_node_set_position(&ssd->extents.tree->node,
-		-border_width, -(ssd->titlebar.height + border_width));
+	if (rc.rotated_title) {
+		wlr_scene_node_set_position(&ssd->extents.tree->node,
+			-(ssd->titlebar.height + border_width),-border_width);
+	} else {
+		wlr_scene_node_set_position(&ssd->extents.tree->node,
+			-border_width, -(ssd->titlebar.height + border_width));
+	}		
 
 	/*
 	 * Convert all output usable areas that the
