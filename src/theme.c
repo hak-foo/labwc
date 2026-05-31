@@ -884,12 +884,18 @@ theme_builtin(struct theme *theme)
 
 
 	parse_hexstr("#808080", theme->icon_color);
+	parse_hexstr("#808080", theme->icon_caption_color);
 	parse_hexstr("#000000", theme->icon_title_color);
 	theme->icon_bevel_width = 0;
 	theme->icon_border_type = BORDER_NONE;
 	theme->icon_highlight = 128;
 	theme->icon_shadow = 64;
-	theme->icon_border_width = 0;
+	theme->icon_caption_border_width = 0;
+	theme->icon_caption_bevel_width = 0;
+	theme->icon_caption_border_type = BORDER_NONE;
+	theme->icon_caption_highlight = 128;
+	theme->icon_caption_shadow = 64;
+	theme->icon_caption_border_width = 0;
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
 		theme->snapping_overlay_region.bg_enabled = false;
@@ -1646,11 +1652,17 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "icon.color")) {
 		parse_color(value, theme->icon_color);
 	}
+	if (match_glob(key, "icon.caption.color")) {
+		parse_color(value, theme->icon_caption_color);
+	}
 	if (match_glob(key, "icon.title-color")) {
 		parse_color(value, theme->icon_title_color);
 	}
 	if (match_glob(key, "icon.border") && parse_border_type(value)) {
 		theme->icon_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "icon.caption.border") && parse_border_type(value)) {
+		theme->icon_caption_border_type = parse_border_type(value);
 	}
 
 	if (match_glob(key, "icon.border.width")) {
@@ -1672,6 +1684,26 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->icon_shadow =
 			get_int_if_positive(
 				value, "icon.shadow");
+	}
+	if (match_glob(key, "icon.caption.border.width")) {
+		theme->icon_caption_border_width =
+			get_int_if_positive(
+				value, "icon.caption.border.width");
+	}
+	if (match_glob(key, "icon.caption.border.bevel-width")) {
+		theme->icon_caption_bevel_width =
+			get_int_if_positive(
+				value, "icon.caption.border.bevel-width");
+	}
+	if (match_glob(key, "icon.caption.highlight")) {
+		theme->icon_caption_highlight =
+			get_int_if_positive(
+				value, "icon.caption.highlight");
+	}
+	if (match_glob(key, "icon.caption.shadow")) {
+		theme->icon_caption_shadow =
+			get_int_if_positive(
+				value, "icon.caption.shadow");
 	}
 
 	if (match_glob(key, "snapping.overlay.region.bg.enabled")) {

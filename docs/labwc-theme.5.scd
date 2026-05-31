@@ -745,6 +745,10 @@ all are supported.
 	
 # DESKTOP ICONS
 
+Icons are rendered as two boxes- the top box containing the image, and
+a "caption" below.  Individual styling rules allow, for example, a solid
+caption but a transparent background behind the icon image.
+
 *icon.color*
 	Color of the icon box. Default is #808080.
 
@@ -767,6 +771,27 @@ all are supported.
 
 *icon.shadow*
 	The brightness factor applied to the sunken bevels of icon boxes.
+	Default is 64.
+	
+*icon.caption.color*
+	Color of the text panel below the icon box. Default is #808080.
+
+*icon.caption.border*  (Raised | Sunken | DoubleRaised | DoubleSunken | Flat | None)
+	Beveled texture applied to icon captions.  Default is None
+
+*icon.caption.border.width*
+	Width of the border applied to caption boxes.  Default is 0.
+
+*icon.caption.border.bevel-width*
+	Width of the sub-bevel applied to captions where the texture is *DoubleRaised*
+	or *DoubleSunken*.  Default is 0.
+
+*icon.caption.highlight*
+	The brightness factor applied to the raised bevels of caption boxes.
+	Default is 128.
+
+*icon.caption.shadow*
+	The brightness factor applied to the sunken bevels of caption boxes.
 	Default is 64.
 
 

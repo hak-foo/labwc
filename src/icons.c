@@ -65,8 +65,10 @@ void process_icon_drag(float sx, float sy)
 
 void process_icon_press(float sx, float sy, struct view *found_view)
 {
-	icon_drag_start_x = sx - found_view->icon_x;
-	icon_drag_start_y = sy - found_view->icon_y;
+	if (found_view) {
+		icon_drag_start_x = sx - found_view->icon_x;
+		icon_drag_start_y = sy - found_view->icon_y;
+	}
 	active_drag_icon = found_view;
 }
 
@@ -205,6 +207,9 @@ void icons_update(void)
 					// for minimized/normal windows
 					float *bc =
 						theme->icon_color;
+						
+					float *cc =
+						theme->icon_caption_color;
 
 					int bw =
 						theme->icon_border_width;
@@ -220,6 +225,22 @@ void icons_update(void)
 
 					int bvw =
 						theme->icon_bevel_width;
+						
+					int cbw =
+						theme->icon_caption_border_width;
+
+					int chighlight =
+						theme->icon_caption_highlight;
+
+					int cshadow =
+						theme->icon_caption_shadow;
+
+					enum border_type cbt =
+						theme->icon_caption_border_type;
+
+					int cbvw =
+						theme->icon_caption_bevel_width;
+
 
 					float *tc =
 						theme->icon_title_color;
@@ -239,8 +260,11 @@ void icons_update(void)
 
 					set_cairo_color(cairo, tc);
 
-					int req_width = border_fbox.width - 2 * bw -2;
+					int req_width = border_fbox.width - 2 * cbw -2;
 
+					int top_box_height = graphic_size + 2*bw + 4;
+					int bottom_box_height = border_fbox.height
+						- top_box_height;
 				
 					pango_layout_set_font_description(
 						layout,
@@ -250,7 +274,7 @@ void icons_update(void)
 						req_width * PANGO_SCALE);
 					pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
 					pango_layout_set_height(layout,
-						(icon_height - 2 * bw - graphic_size - 6)
+						(icon_height - top_box_height - 2 * cbw - 2)
 						* PANGO_SCALE);
 					pango_font_description_free(desc);
 					pango_layout_set_text(layout,
@@ -261,42 +285,44 @@ void icons_update(void)
 					
 					set_cairo_color(cairo, bc);
 
-					// To consider - drawing independent borders
-					// and background for the icon and caption
 					cairo_rectangle(cairo,
 						0,
 						0,
 						border_fbox.width,
-						border_fbox.height);
+						top_box_height);
+					cairo_fill(cairo);
+					
+					set_cairo_color(cairo, cc);
+
+					cairo_rectangle(cairo,
+						0,
+						top_box_height,
+						border_fbox.width,
+						bottom_box_height);
 					cairo_fill(cairo);
 
 					cairo_borders(cairo,
 						0,
 						0,
 						border_fbox.width,
-						(border_fbox.height
-							- prect.height/ PANGO_SCALE)
-							- 2* bw - 4,
+						top_box_height,
 						bw, highlight, shadow,
 						bt, bvw, bc);
 
 					cairo_borders(cairo,
 						0,
-						(border_fbox.height
-							- prect.height/ PANGO_SCALE)
-							- 2* bw - 4,
+						top_box_height,
 						border_fbox.width,
-						(prect.height/ PANGO_SCALE)
-							+ 2* bw + 4,
-						bw, highlight, shadow,
-						bt, bvw, bc);
+						bottom_box_height,
+						cbw, chighlight, cshadow,
+						cbt, cbvw, cc);
 						
 					cairo_move_to(cairo,
 						(border_fbox.width
 							- req_width) / 2,
-						(border_fbox.height
-							- prect.height/ PANGO_SCALE)
-							- bw - 2);
+						top_box_height + 
+						(bottom_box_height - (prect.height/ PANGO_SCALE)) / 2
+						);
 							
 					set_cairo_color(cairo, tc);
 					pango_cairo_show_layout(cairo,
@@ -314,7 +340,7 @@ void icons_update(void)
 					wlr_scene_node_set_position(
 						&icon_buffer->scene_buffer->node,
 						border_fbox.x+(border_fbox.width-graphic_size)/2,
-						border_fbox.y+bw+4);
+						border_fbox.y+(top_box_height - graphic_size) / 2);
 					
 		
 					wlr_scene_node_set_position(&scene_buffer->node, border_fbox.x, border_fbox.y);
