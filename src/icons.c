@@ -224,16 +224,6 @@ void icons_update(void)
 					float *tc =
 						theme->icon_title_color;
 
-					
-					set_cairo_color(cairo, bc);
-
-					cairo_rectangle(cairo,
-						0,
-						0,
-						border_fbox.width,
-						border_fbox.height);
-					cairo_fill(cairo);
-
 					PangoLayout *layout =
 						pango_cairo_create_layout(cairo);
 					pango_context_set_round_glyph_positions(
@@ -269,6 +259,16 @@ void icons_update(void)
 					PangoRectangle prect = {0};
 					pango_layout_get_extents(layout, NULL, &prect);
 					
+					set_cairo_color(cairo, bc);
+
+					// To consider - drawing independent borders
+					// and background for the icon and caption
+					cairo_rectangle(cairo,
+						0,
+						0,
+						border_fbox.width,
+						border_fbox.height);
+					cairo_fill(cairo);
 
 					cairo_borders(cairo,
 						0,
