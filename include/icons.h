@@ -19,6 +19,8 @@ void process_icon_release(void);
 void process_icon_drag(float sx, float sy);
 void process_icon_press(float sx, float sy, struct view *found_view);
 void process_icon_move(float sx, float sy, struct view *found_view);
+void place_icon(unsigned char *icon_map, struct view *view,
+	int rows, int cols, int screenheight);
 extern struct view *active_drag_icon;
 
 #endif /* LABWC_ICONS_H */

@@ -343,12 +343,11 @@ load_button(struct theme *theme, struct button *b, enum ssd_active_state active)
 }
 
 static void
-load_menu_arrow_part(struct theme * theme, struct lab_img **target, bool active)
+load_menu_arrow_part(struct theme *theme, struct lab_img **target, bool active)
 {
 	struct lab_img *img;
 	float *rgba = theme->menu_items_text_color;
 	char filename[4096];
-
 
 	/* PNG */
 	get_button_filename(filename, sizeof(filename), "menu_arrow",
@@ -358,7 +357,8 @@ load_menu_arrow_part(struct theme * theme, struct lab_img **target, bool active)
 #if HAVE_RSVG
 	/* SVG */
 	if (!img) {
-		get_button_filename(filename, sizeof(filename), "menu_arrow", active ? "-active.svg" : "-inactive.svg");
+		get_button_filename(filename, sizeof(filename),
+			"menu_arrow", active ? "-active.svg" : "-inactive.svg");
 		img = lab_img_load(LAB_IMG_SVG, filename, rgba);
 	}
 #endif
@@ -368,7 +368,6 @@ load_menu_arrow_part(struct theme * theme, struct lab_img **target, bool active)
 		get_button_filename(filename, sizeof(filename), "menu_arrow", ".xbm");
 		img = lab_img_load(LAB_IMG_XBM, filename, rgba);
 	}
-
 
 	/*
 	 * Builtin bitmap
@@ -380,7 +379,7 @@ load_menu_arrow_part(struct theme * theme, struct lab_img **target, bool active)
 		const char fallback[] = {0x06, 0x0e, 0x1a, 0x1a, 0x0e, 0x06};
 		img = lab_img_load_from_bitmap(fallback, rgba);
 	}
-	
+
 	*target = img;
 }
 
@@ -882,7 +881,6 @@ theme_builtin(struct theme *theme)
 	theme->pager_minimized_window_highlight = 128;
 	theme->pager_minimized_window_shadow = 64;
 
-
 	parse_hexstr("#808080", theme->icon_color);
 	parse_hexstr("#808080", theme->icon_caption_color);
 	parse_hexstr("#000000", theme->icon_title_color);
@@ -923,7 +921,6 @@ theme_builtin(struct theme *theme)
 	/* magnifier */
 	parse_hexstr("#ff0000", theme->mag_border_color);
 	theme->mag_border_width = 1;
-	
 }
 
 static int

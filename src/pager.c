@@ -120,7 +120,6 @@ struct wlr_fbox thumbnail_size(struct view *view, int wscount)
 
 void process_pager_move(float sx, float sy, struct view *found_view)
 {
-	
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
 	int total_pagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
 	int pagerheight = ceil((float)total_pagerheight /
@@ -137,17 +136,20 @@ void process_pager_move(float sx, float sy, struct view *found_view)
 	// so if we need to find the right "workspace" we need to offset it
 	// by the position the pager lives in and its border.
 	// The other calculations are relative and don't care.
-	float adj_pager_drag_start_y = pager_drag_start_y - rc.pager_y - rc.theme->pager_border_width;
+	float adj_pager_drag_start_y = pager_drag_start_y -
+		rc.pager_y - rc.theme->pager_border_width;
 	sy -= rc.pager_y;
 	sy -= rc.theme->pager_border_width;
 
 	if (found_view) {
 		int old_workspace = adj_pager_drag_start_y / pagerheight;
 		int new_workspace = sy / pagerheight;
-		
+
 		if (old_workspace == new_workspace) {
-			int delta_x = (sx - pager_drag_start_x) * ((float)screenwidth / (float)pagerwidth);
-			int delta_y = (sy - adj_pager_drag_start_y) * ((float)screenheight / (float)pagerheight);
+			int delta_x = (sx - pager_drag_start_x)
+				* ((float)screenwidth / (float)pagerwidth);
+			int delta_y = (sy - adj_pager_drag_start_y)
+				* ((float)screenheight / (float)pagerheight);
 			view_move_relative(found_view, delta_x, delta_y);
 		} else {
 			int delta_x = (sx - pager_drag_start_x) * screenwidth / pagerwidth;
@@ -184,7 +186,7 @@ void process_pager_drag(float sx, float sy)
 		sy > rc.pager_y + rc.pager_height) {
 		return;
 	}
-	
+
 	sx -= rc.theme->pager_border_width;
 	sy -= rc.theme->pager_border_width;
 	if (active_drag_view) {
@@ -195,7 +197,7 @@ void process_pager_drag(float sx, float sy)
 }
 
 // Pressing an icon in the pager will tag it for drag actions.
-void 
+void
 process_pager_window_press(float sx, float sy, struct view *found_view)
 {
 	if (found_view) {
@@ -203,9 +205,9 @@ process_pager_window_press(float sx, float sy, struct view *found_view)
 		pager_drag_start_y = sy;
 		pager_update();
 	}
-	
+
 	active_drag_view = found_view;
-}	
+}
 
 // A click on the pager itself will focus the selected workspace
 void
@@ -234,7 +236,7 @@ process_pager_press(float sx, float sy)
 			break;
 		}
 		wscount++;
-	}	
+	}
 }
 
 static void
@@ -295,8 +297,8 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server.allocator,
 		sx*view->current.width, sy*view->current.height,
 		&output->wlr_output->swapchain->format);
-		
-	if(!buffer) {
+
+	if (!buffer) {
 		return NULL;
 	}
 
@@ -330,7 +332,7 @@ void pager_flush(struct view *view)
 		// Drop cache immediately because this is after a change to
 		// this specific window.  But still limit it to every 2 seconds
 		// since some software emits a billion window changes.
-		
+
 		// A resize generates a different size thumbnail so it won't
 		// find a cached entry typically, so that remains fast
 		if (pointer->creation_id == view->creation_id && now - pointer->created > 2) {
@@ -431,7 +433,7 @@ unsigned char *get_thumbnail_cache(
 	}
 	return new_entry->thumbnail;
 }
-	
+
 void pager_update(void)
 {
 	struct output *output;
@@ -446,8 +448,7 @@ void pager_update(void)
 		}
 		return;
 	}
-	
-	
+
 	if (wl_list_empty(&rc.workspace_config.workspaces)) {
 		return;
 	}
@@ -477,7 +478,8 @@ void pager_update(void)
 		if (output->pager_osd) {
 			// Kill off all the icon images
 			struct wlr_scene_node *node, *tmpnode;
-			wl_list_for_each_safe(node, tmpnode, &output->pager_osd->children, link) {	
+			wl_list_for_each_safe(node, tmpnode,
+				&output->pager_osd->children, link) {
 				wlr_scene_node_destroy(node);
 			}
 		}
@@ -493,8 +495,8 @@ void pager_update(void)
 			wlr_log(WLR_ERROR, "Failed to allocate buffer for pager");
 			continue;
 		}
-		
-		struct wlr_scene_buffer	*pager_backdrop = 
+
+		struct wlr_scene_buffer	*pager_backdrop =
 			lab_wlr_scene_buffer_create(output->pager_osd, &buffer->base);
 		wlr_scene_buffer_set_dest_size(pager_backdrop,
 			rc.pager_width, rc.pager_height);
@@ -511,7 +513,6 @@ void pager_update(void)
 				theme->pager_border_width +
 				pagerheight * wscount, pagerwidth, pagerheight);
 			cairo_fill(cairo);
-
 
 			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
 				if (view->workspace == workspace) {
@@ -558,15 +559,16 @@ void pager_update(void)
 					struct lab_data_buffer *thumb_buffer = buffer_create_cairo(
 					border_fbox.width, border_fbox.height,
 						output->wlr_output->scale);
-					struct wlr_scene_buffer	*base_scene = 
-						lab_wlr_scene_buffer_create(output->pager_osd, &thumb_buffer->base);
-						
+					struct wlr_scene_buffer	*base_scene =
+						lab_wlr_scene_buffer_create(output->pager_osd,
+						&thumb_buffer->base);
+
 					cairo_t *thumb_cairo;
 					thumb_cairo = cairo_create(thumb_buffer->surface);
 
 					// Only generate a thumbnail if we are configured for
 					// them and it will produce a positive size
-					
+
 					if (rc.pager_thumbnail &&
 						view->current.width > 0 &&
 						view->current.height > 0 &&
@@ -668,10 +670,10 @@ void pager_update(void)
 							+ border_fbox.x,
 						y + theme->pager_border_width
 							+border_fbox.y);
-					node_descriptor_create(&base_scene->node, LAB_NODE_PAGER_WINDOW, view, 0);
+					node_descriptor_create(&base_scene->node,
+						LAB_NODE_PAGER_WINDOW, view, 0);
 					wlr_buffer_drop(&thumb_buffer->base);
 				}
-				
 			}
 			wscount++;
 		}
@@ -684,8 +686,6 @@ void pager_update(void)
 		cairo_surface_flush(surface);
 		cairo_destroy(cairo);
 
-		
-		
 		wlr_scene_node_set_enabled(&output->pager_osd->node, true);
 
 		wlr_scene_node_set_position(&pager_backdrop->node, x, y);

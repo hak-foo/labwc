@@ -1160,7 +1160,7 @@ run_action(struct view *view, struct action *action,
 		} else {
 			cycle_begin(dir, filter);
 		}
-		
+
 		if (action_get_bool(action, "warp",
 				rc.window_switcher.workspace_filter)) {
 			warp_cursor(server.cycle.selected_view,

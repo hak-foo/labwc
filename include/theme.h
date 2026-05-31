@@ -227,24 +227,22 @@ struct theme {
 	int pager_minimized_window_bevel_width;
 	int pager_minimized_window_highlight;
 	int pager_minimized_window_shadow;
-	
-	
+
 	float icon_color[4];
 	float icon_caption_color[4];
 	float icon_title_color[4];
-	
+
 	int icon_border_width;
 	enum border_type icon_border_type;
 	int icon_bevel_width;
 	int icon_highlight;
 	int icon_shadow;
-	
+
 	int icon_caption_border_width;
 	enum border_type icon_caption_border_type;
 	int icon_caption_bevel_width;
 	int icon_caption_highlight;
 	int icon_caption_shadow;
-	
 
 	struct window_switcher_classic_theme {
 		int width;
@@ -292,7 +290,7 @@ struct theme {
 	/* magnifier */
 	float mag_border_color[4];
 	int mag_border_width;
-	
+
 	struct lab_img *menu_arrow_img;
 	struct lab_img *menu_arrow_img_active;
 };

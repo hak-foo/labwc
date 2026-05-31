@@ -667,7 +667,7 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 			active_drag_view = NULL;
 		}
 	}
-	
+
 	if (ctx.type == LAB_NODE_DESKTOP_ICON || active_drag_icon) {
 		// We need to set cursor type here so we don't have a dangling "old" cursor
 		// if you move from a window into the pager.
@@ -687,7 +687,6 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 			active_drag_icon = NULL;
 		}
 	}
-
 
 	if (ctx.type == LAB_NODE_MENUITEM) {
 		menu_process_cursor_motion(ctx.node);
@@ -1204,12 +1203,12 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		process_pager_press(ctx.sx, ctx.sy);
 		return false;
 	}
-	
+
 	if (ctx.type == LAB_NODE_PAGER_WINDOW) {
 		process_pager_window_press(seat->cursor->x, seat->cursor->y, ctx.view);
 		// Allow potential bindings, like "click to raise"
 	}
-	
+
 	if (ctx.type == LAB_NODE_DESKTOP_ICON) {
 		process_icon_press(seat->cursor->x, seat->cursor->y, ctx.view);
 		// continue for bindings
@@ -1275,7 +1274,6 @@ bool
 cursor_process_button_release(struct seat *seat, uint32_t button,
 		uint32_t time_msec)
 {
-	
 	struct cursor_context ctx = get_cursor_context();
 	struct wlr_surface *pressed_surface = seat->pressed.ctx.surface;
 
@@ -1284,12 +1282,11 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 
 	cursor_context_save(&seat->pressed, NULL);
 
-
 	if (ctx.type == LAB_NODE_PAGER_WINDOW || active_drag_view) {
 		process_pager_release();
 		// Allow fallthrough for bindings
 	}
-	
+
 	// In a situation where a binding deiconifies the window,
 	// the release may not be associated with the icon anymore
 	// but we need to deactivate the icon

@@ -369,7 +369,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 		/* Vertically center and right-align arrow */
 		x += label_max_width + theme->menu_items_padding_x;
 		y = (theme->menu_item_height - rc.theme->window_button_height) / 2;
-		wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);		
+		wlr_scene_node_set_position(&arrow_buffer->scene_buffer->node, x, y);
 	} else {
 		/* Create arrow for submenu items */
 		struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
