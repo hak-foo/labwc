@@ -114,11 +114,6 @@ void icons_update(void)
 	
 	int rows = screenheight / y_spacing;
 	int cols = screenwidth / x_spacing;
-	
-	int font_h = font_height(&rc.font_icon);
-
-	
-
 
 	wl_list_for_each(output, &server.outputs, link) {		
 		if (!output_is_usable(output)) {
@@ -239,14 +234,6 @@ void icons_update(void)
 						border_fbox.height);
 					cairo_fill(cairo);
 
-					cairo_borders(cairo,
-						0,
-						0,
-						border_fbox.width,
-						border_fbox.height,
-						bw, highlight, shadow,
-						bt, bvw, bc);
-
 					PangoLayout *layout =
 						pango_cairo_create_layout(cairo);
 					pango_context_set_round_glyph_positions(
@@ -264,12 +251,7 @@ void icons_update(void)
 
 					int req_width = border_fbox.width - 2 * bw -2;
 
-					cairo_move_to(cairo,
-						(border_fbox.width
-								- req_width) / 2,
-						(border_fbox.height
-								- font_h) - bw - 2);
-					
+				
 					pango_layout_set_font_description(
 						layout,
 						desc);
@@ -286,14 +268,37 @@ void icons_update(void)
 					
 					PangoRectangle prect = {0};
 					pango_layout_get_extents(layout, NULL, &prect);
+					
+
+					cairo_borders(cairo,
+						0,
+						0,
+						border_fbox.width,
+						(border_fbox.height
+							- prect.height/ PANGO_SCALE)
+							- 2* bw - 4,
+						bw, highlight, shadow,
+						bt, bvw, bc);
+
+					cairo_borders(cairo,
+						0,
+						(border_fbox.height
+							- prect.height/ PANGO_SCALE)
+							- 2* bw - 4,
+						border_fbox.width,
+						(prect.height/ PANGO_SCALE)
+							+ 2* bw + 4,
+						bw, highlight, shadow,
+						bt, bvw, bc);
+						
 					cairo_move_to(cairo,
 						(border_fbox.width
 							- req_width) / 2,
 						(border_fbox.height
 							- prect.height/ PANGO_SCALE)
 							- bw - 2);
-						
-						
+							
+					set_cairo_color(cairo, tc);
 					pango_cairo_show_layout(cairo,
 						layout);
 					g_object_unref(layout);
