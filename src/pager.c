@@ -324,11 +324,16 @@ void pager_flush(struct view *view)
 	}
 	struct thumbnail_cache *pointer = thumb_cache;
 	struct thumbnail_cache *old = NULL, *next = NULL;
+	time_t now = time(NULL);
 	while (pointer) {
 		next = pointer->next;
-		// We'll drop a cached thumbnail after this many re-renderings of the pager.
-		// We could also flush after a change occured to a specific window.
-		if (pointer->creation_id == view->creation_id) {
+		// Drop cache immediately because this is after a change to
+		// this specific window.  But still limit it to every 2 seconds
+		// since some software emits a billion window changes.
+		
+		// A resize generates a different size thumbnail so it won't
+		// find a cached entry typically, so that remains fast
+		if (pointer->creation_id == view->creation_id && now - pointer->created > 2) {
 			// If we're expiring the first entry
 			// update the start of the cache list for everyone
 			if (pointer == thumb_cache) {
@@ -355,14 +360,14 @@ unsigned char *get_thumbnail_cache(
 	struct view *view,
 	struct wlr_fbox border_fbox)
 {
+	time_t now = time(NULL);
 	struct thumbnail_cache *pointer = thumb_cache;
 	struct thumbnail_cache *old = NULL, *next = NULL;
 	while (pointer) {
 		next = pointer->next;
-		pointer->age++;
 		// We'll drop a cached thumbnail after this many re-renderings of the pager.
 		// We could also flush after a change occured to a specific window.
-		if (pointer->age > 10000) {
+		if (now - pointer->created > 15) {
 			// If we're expiring the first entry
 			// update the start of the cache list for everyone
 			if (pointer == thumb_cache) {
@@ -390,7 +395,7 @@ unsigned char *get_thumbnail_cache(
 	}
 	struct thumbnail_cache *new_entry = malloc(sizeof(struct thumbnail_cache));
 	new_entry->creation_id = view->creation_id;
-	new_entry->age = 0;
+	new_entry->created = now;
 	new_entry->next = NULL;
 	new_entry->width = border_fbox.width;
 	new_entry->height = border_fbox.height;

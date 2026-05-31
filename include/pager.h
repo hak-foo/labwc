@@ -16,7 +16,7 @@ enum border_type;
 
 struct thumbnail_cache {
 	uint64_t creation_id;
-	uint32_t age;
+	time_t created;
 	unsigned char *thumbnail;
 	int width;
 	int height;
