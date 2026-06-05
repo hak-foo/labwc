@@ -300,7 +300,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		wlr_scene_node_destroy(&output->pager_osd->node);
 		output->pager_osd = NULL;
 	}
-	
+
 	if (output->icons_osd) {
 		wlr_scene_node_destroy(&output->icons_osd->node);
 		output->icons_osd = NULL;
