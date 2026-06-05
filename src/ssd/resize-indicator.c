@@ -202,6 +202,7 @@ resize_indicator_update(struct view *view)
 		view_box.width = view_effective_width(view, /* use_pending */ false);
 	}
 
+
 	if (server.input_mode == LAB_INPUT_STATE_RESIZE) {
 		struct view_size_hints hints = view_get_size_hints(view);
 		snprintf(text, sizeof(text), "%d x %d",
@@ -215,8 +216,12 @@ resize_indicator_update(struct view *view)
 			view_box.x - margin.left,
 			view_box.y - margin.top);
 	} else {
+		// We've shown the indicator above, but we don't want to use it
+		// Example:  Window just deiconified
+		resize_indicator_hide(view);
 		wlr_log(WLR_ERROR, "Invalid input mode for indicator update %u",
 			server.input_mode);
+			
 		return;
 	}
 
