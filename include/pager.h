@@ -34,7 +34,7 @@ void process_pager_move(float sx, float sy, struct view *found_view);
 struct view *find_pager_window(float sx, float sy);
 unsigned char *get_thumbnail_cache(struct output *output, struct view *view,
 	struct wlr_fbox border_fbox);
-struct wlr_fbox thumbnail_size(struct view *view, int wscount);
+struct wlr_fbox thumbnail_size(struct view *view);
 extern struct view *active_drag_view;
 
 #endif /* LABWC_PAGER_H */

@@ -42,20 +42,33 @@ unsigned char *pixel_data;
 
 struct thumbnail_cache *thumb_cache;
 
-struct wlr_fbox thumbnail_size(struct view *view, int wscount)
+struct wlr_fbox thumbnail_size(struct view *view)
 {
+	int wscount = 0;
+	struct workspace *workspace;
+	int workspaces = wl_list_length(&rc.workspace_config.workspaces);
 	struct wlr_box overall_box = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
 		NULL, &overall_box);
 	int pagerwidth = rc.pager_width - 2* rc.theme->pager_border_width;
 	int total_pagerheight = rc.pager_height - 2 * rc.theme->pager_border_width;
 	int pagerheight = ceil((float)total_pagerheight /
-		wl_list_length(&rc.workspace_config.workspaces));
+		workspaces);
 
 	int screenwidth = overall_box.width - overall_box.x;
 	int screenheight = overall_box.height - overall_box.y;
 
 	struct theme *theme = rc.theme;
+
+	wl_list_for_each(workspace, &server.workspaces.all, link) {
+		if (view->workspace == workspace) {
+			break;
+		}
+		wscount++;
+	}
+
+	wscount = MIN(wscount, workspaces-1);
+
 	int wx = view->current.x * pagerwidth / screenwidth;
 	int wy = view->current.y * pagerheight / screenheight +
 		pagerheight * wscount;
@@ -504,6 +517,7 @@ void pager_update(void)
 		cairo_t *cairo;
 		cairo_surface_t *surface;
 		cairo = cairo_create(buffer->surface);
+
 		int wscount = 0;
 		wl_list_for_each(workspace, &server.workspaces.all, link) {
 			/* Background */
@@ -513,170 +527,169 @@ void pager_update(void)
 				theme->pager_border_width +
 				pagerheight * wscount, pagerwidth, pagerheight);
 			cairo_fill(cairo);
-
-			for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == workspace) {
-					// Determine dimensions for mini-window (common)
-					struct wlr_fbox border_fbox =
-						thumbnail_size(view, wscount);
-					// Prepare border/caption styles that differ
-					// for minimized/normal windows
-					float *bc =
-						view->minimized ?
-						theme->pager_color_minimized_window :
-						theme->pager_color_window;
-
-					int bw =
-						view->minimized ?
-						theme->pager_minimized_window_border_width :
-						theme->pager_window_border_width;
-
-					int highlight =
-						view->minimized ?
-						theme->pager_minimized_window_highlight :
-						theme->pager_window_highlight;
-
-					int shadow =
-						view->minimized ?
-						theme->pager_minimized_window_shadow :
-						theme->pager_window_shadow;
-
-					enum border_type bt =
-						view->minimized ?
-						theme->pager_minimized_window_border_type :
-						theme->pager_window_border_type;
-
-					int bvw =
-						view->minimized ?
-						theme->pager_minimized_window_bevel_width :
-						theme->pager_window_bevel_width;
-
-					float *tc =
-						view->minimized ?
-						theme->pager_color_minimized_window_title :
-						theme->pager_color_window_title;
-
-					struct lab_data_buffer *thumb_buffer = buffer_create_cairo(
-					border_fbox.width, border_fbox.height,
-						output->wlr_output->scale);
-					struct wlr_scene_buffer	*base_scene =
-						lab_wlr_scene_buffer_create(output->pager_osd,
-						&thumb_buffer->base);
-
-					cairo_t *thumb_cairo;
-					thumb_cairo = cairo_create(thumb_buffer->surface);
-
-					// Only generate a thumbnail if we are configured for
-					// them and it will produce a positive size
-
-					if (rc.pager_thumbnail &&
-						view->current.width > 0 &&
-						view->current.height > 0 &&
-						border_fbox.width > 0 &&
-						border_fbox.height > 0) {
-						pixel_data = get_thumbnail_cache(output, view,
-							border_fbox);
-					} else {
-						pixel_data = NULL;
-					}
-
-					// If we have a thumbnail, render it.
-					if (pixel_data) {
-						cairo_surface_t *snapshot_surface =
-							cairo_image_surface_create_for_data(
-								pixel_data, CAIRO_FORMAT_ARGB32,
-								border_fbox.width,
-								border_fbox.height,
-								4*border_fbox.width);
-						cairo_set_source_surface(thumb_cairo,
-							snapshot_surface,
-							0, 0);
-						cairo_rectangle(thumb_cairo,
-							0, 0,
-							border_fbox.width,
-							border_fbox.height);
-						cairo_fill(thumb_cairo);
-						cairo_surface_destroy(snapshot_surface);
-					} else {
-						// If we're not rendering a thumbnail, use rules for
-						// box-based windows:
-						set_cairo_color(thumb_cairo, bc);
-						cairo_rectangle(thumb_cairo,
-							0, 0,
-							border_fbox.width,
-							border_fbox.height);
-						cairo_fill(thumb_cairo);
-					}
-
-					// Experiment:
-					// Add borders on both highlighted and normal windows
-					// so they're easier to identify the edges and identifies
-					// minimized windows
-					cairo_borders(thumb_cairo,
-						0, 0,
-						border_fbox.width,
-						border_fbox.height,
-						bw, highlight, shadow,
-						bt, bvw, bc);
-
-					// Only draw a title if the window
-					// is big enough for it and isn't a thumbnail
-					if (!pixel_data &&
-						border_fbox.height >= font_h + 6) {
-						PangoLayout *layout =
-							pango_cairo_create_layout(thumb_cairo);
-						pango_context_set_round_glyph_positions(
-							pango_layout_get_context(layout),
-							false);
-						pango_layout_set_ellipsize(
-							layout,
-							PANGO_ELLIPSIZE_END);
-						int req_width = font_width(
-							&rc.font_pager,
-							view->title);
-						PangoFontDescription *desc =
-							font_to_pango_desc(
-								&rc.font_pager);
-
-						set_cairo_color(thumb_cairo, tc);
-
-						req_width = MIN(req_width,
-							border_fbox.width -
-							2 * bw -2
-						);
-
-						cairo_move_to(thumb_cairo,
-							(border_fbox.width
-									- req_width) / 2,
-							(border_fbox.height
-									- font_h) / 2);
-							pango_layout_set_font_description(
-								layout,
-								desc);
-							pango_layout_set_width(layout,
-								req_width * PANGO_SCALE);
-							pango_font_description_free(desc);
-							pango_layout_set_text(layout,
-								view->title, -1);
-							pango_cairo_show_layout(thumb_cairo,
-								layout);
-							g_object_unref(layout);
-					}
-					cairo_destroy(thumb_cairo);
-					wlr_scene_buffer_set_dest_size(base_scene,
-						border_fbox.width, border_fbox.height);
-					wlr_scene_node_set_position(&base_scene->node,
-						x + theme->pager_border_width
-							+ border_fbox.x,
-						y + theme->pager_border_width
-							+border_fbox.y);
-					node_descriptor_create(&base_scene->node,
-						LAB_NODE_PAGER_WINDOW, view, 0);
-					wlr_buffer_drop(&thumb_buffer->base);
-				}
-			}
 			wscount++;
 		}
+
+		for_each_view_reverse(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+			// Determine dimensions for mini-window (common)
+			struct wlr_fbox border_fbox =
+				thumbnail_size(view);
+			// Prepare border/caption styles that differ
+			// for minimized/normal windows
+			float *bc =
+				view->minimized ?
+				theme->pager_color_minimized_window :
+				theme->pager_color_window;
+
+			int bw =
+				view->minimized ?
+				theme->pager_minimized_window_border_width :
+				theme->pager_window_border_width;
+
+			int highlight =
+				view->minimized ?
+				theme->pager_minimized_window_highlight :
+				theme->pager_window_highlight;
+
+			int shadow =
+				view->minimized ?
+				theme->pager_minimized_window_shadow :
+				theme->pager_window_shadow;
+
+			enum border_type bt =
+				view->minimized ?
+				theme->pager_minimized_window_border_type :
+				theme->pager_window_border_type;
+
+			int bvw =
+				view->minimized ?
+				theme->pager_minimized_window_bevel_width :
+				theme->pager_window_bevel_width;
+
+			float *tc =
+				view->minimized ?
+				theme->pager_color_minimized_window_title :
+				theme->pager_color_window_title;
+
+			struct lab_data_buffer *thumb_buffer = buffer_create_cairo(
+			border_fbox.width, border_fbox.height,
+				output->wlr_output->scale);
+			struct wlr_scene_buffer	*base_scene =
+				lab_wlr_scene_buffer_create(output->pager_osd,
+				&thumb_buffer->base);
+
+			cairo_t *thumb_cairo;
+			thumb_cairo = cairo_create(thumb_buffer->surface);
+
+			// Only generate a thumbnail if we are configured for
+			// them and it will produce a positive size
+
+			if (rc.pager_thumbnail &&
+				view->current.width > 0 &&
+				view->current.height > 0 &&
+				border_fbox.width > 0 &&
+				border_fbox.height > 0) {
+				pixel_data = get_thumbnail_cache(output, view,
+					border_fbox);
+			} else {
+				pixel_data = NULL;
+			}
+
+			// If we have a thumbnail, render it.
+			if (pixel_data) {
+				cairo_surface_t *snapshot_surface =
+					cairo_image_surface_create_for_data(
+						pixel_data, CAIRO_FORMAT_ARGB32,
+						border_fbox.width,
+						border_fbox.height,
+						4*border_fbox.width);
+				cairo_set_source_surface(thumb_cairo,
+					snapshot_surface,
+					0, 0);
+				cairo_rectangle(thumb_cairo,
+					0, 0,
+					border_fbox.width,
+					border_fbox.height);
+				cairo_fill(thumb_cairo);
+				cairo_surface_destroy(snapshot_surface);
+			} else {
+				// If we're not rendering a thumbnail, use rules for
+				// box-based windows:
+				set_cairo_color(thumb_cairo, bc);
+				cairo_rectangle(thumb_cairo,
+					0, 0,
+					border_fbox.width,
+					border_fbox.height);
+				cairo_fill(thumb_cairo);
+			}
+
+			// Experiment:
+			// Add borders on both highlighted and normal windows
+			// so they're easier to identify the edges and identifies
+			// minimized windows
+			cairo_borders(thumb_cairo,
+				0, 0,
+				border_fbox.width,
+				border_fbox.height,
+				bw, highlight, shadow,
+				bt, bvw, bc);
+
+			// Only draw a title if the window
+			// is big enough for it and isn't a thumbnail
+			if (!pixel_data &&
+				border_fbox.height >= font_h + 6) {
+				PangoLayout *layout =
+					pango_cairo_create_layout(thumb_cairo);
+				pango_context_set_round_glyph_positions(
+					pango_layout_get_context(layout),
+					false);
+				pango_layout_set_ellipsize(
+					layout,
+					PANGO_ELLIPSIZE_END);
+				int req_width = font_width(
+					&rc.font_pager,
+					view->title);
+				PangoFontDescription *desc =
+					font_to_pango_desc(
+						&rc.font_pager);
+
+				set_cairo_color(thumb_cairo, tc);
+
+				req_width = MIN(req_width,
+					border_fbox.width -
+					2 * bw -2
+				);
+
+				cairo_move_to(thumb_cairo,
+					(border_fbox.width
+							- req_width) / 2,
+					(border_fbox.height
+							- font_h) / 2);
+					pango_layout_set_font_description(
+						layout,
+						desc);
+					pango_layout_set_width(layout,
+						req_width * PANGO_SCALE);
+					pango_font_description_free(desc);
+					pango_layout_set_text(layout,
+						view->title, -1);
+					pango_cairo_show_layout(thumb_cairo,
+						layout);
+					g_object_unref(layout);
+			}
+			cairo_destroy(thumb_cairo);
+			wlr_scene_buffer_set_dest_size(base_scene,
+				border_fbox.width, border_fbox.height);
+			wlr_scene_node_set_position(&base_scene->node,
+				x + theme->pager_border_width
+					+ border_fbox.x,
+				y + theme->pager_border_width
+					+border_fbox.y);
+			node_descriptor_create(&base_scene->node,
+				LAB_NODE_PAGER_WINDOW, view, 0);
+			wlr_buffer_drop(&thumb_buffer->base);
+		}
+
 		cairo_borders(cairo, 0, 0, rc.pager_width,
 					rc.pager_height, theme->pager_border_width,
 					theme->pager_highlight, theme->pager_shadow,
