@@ -130,7 +130,6 @@ void icons_update(void)
 	int icon_height = rc.icon_height;
 	int graphic_size = rc.icon_graphic_size;
 
-	struct workspace *workspace;
 	struct view *view;
 	struct wlr_box overall_box = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
@@ -160,218 +159,212 @@ void icons_update(void)
 				&server.scene->tree);
 		}
 
-		int wscount = 0;
-
-		wl_list_for_each(workspace, &server.workspaces.all, link) {
-			// Note that the icon map is "bottom to top" - row 0 is the
-			// lowest row on the screen
-			unsigned char *icon_map = malloc(rows * cols);
-			memset(icon_map, 0, rows*cols);
-			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == server.workspaces.current
-					&& view->minimized && view->icon_mapped) {
-					int icon_x = (view->icon_x - left_offset)
-						/ x_spacing;
-					int icon_y = (screenheight - view->icon_y)
-						/ y_spacing;
-					if (icon_x >= 0 && icon_x < cols && icon_y >= 0
-						&& icon_y < rows) {
-						icon_map[icon_y * cols + icon_x]++;
-					}
-					// To consider:  We could block out nearby map
-					// squares if the icon is off grid
+		// Note that the icon map is "bottom to top" - row 0 is the
+		// lowest row on the screen
+		unsigned char *icon_map = malloc(rows * cols);
+		memset(icon_map, 0, rows*cols);
+		// We only need to render the icons on the current workspace
+		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			if (view->minimized && view->icon_mapped) {
+				int icon_x = (view->icon_x - left_offset)
+					/ x_spacing;
+				int icon_y = (screenheight - view->icon_y)
+					/ y_spacing;
+				if (icon_x >= 0 && icon_x < cols && icon_y >= 0
+					&& icon_y < rows) {
+					icon_map[icon_y * cols + icon_x]++;
 				}
+				// To consider:  We could block out nearby map
+				// squares if the icon is off grid
 			}
-
-			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-				if (view->workspace == server.workspaces.current
-					&& view->minimized) {
-					place_icon(icon_map, view, rows, cols, screenheight);
-					// Determine dimensions for mini-window (common)
-					struct wlr_fbox border_fbox = {
-						.width = icon_width,
-						.height = icon_height,
-						.x = view->icon_x,
-						.y = view->icon_y
-					};
-
-					struct lab_data_buffer *cbuffer = buffer_create_cairo(
-					border_fbox.width, border_fbox.height,
-						output->wlr_output->scale);
-					struct wlr_scene_buffer	*scene_buffer =
-						lab_wlr_scene_buffer_create(output->icons_osd,
-							&cbuffer->base);
-					wlr_scene_buffer_set_dest_size(scene_buffer,
-						border_fbox.width, border_fbox.height);
-
-					cairo_t *cairo;
-					cairo_surface_t *surface;
-					cairo = cairo_create(cbuffer->surface);
-
-					// Prepare border/caption styles that differ
-					// for minimized/normal windows
-					float *bc =
-						theme->icon_color;
-
-					float *cc =
-						theme->icon_caption_color;
-
-					int bw =
-						theme->icon_border_width;
-
-					int highlight =
-						theme->icon_highlight;
-
-					int shadow =
-						theme->icon_shadow;
-
-					enum border_type bt =
-						theme->icon_border_type;
-
-					int bvw =
-						theme->icon_bevel_width;
-
-					int cbw =
-						theme->icon_caption_border_width;
-
-					int chighlight =
-						theme->icon_caption_highlight;
-
-					int cshadow =
-						theme->icon_caption_shadow;
-
-					enum border_type cbt =
-						theme->icon_caption_border_type;
-
-					int cbvw =
-						theme->icon_caption_bevel_width;
-
-					float *tc =
-						theme->icon_title_color;
-
-					PangoLayout *layout =
-						pango_cairo_create_layout(cairo);
-					pango_context_set_round_glyph_positions(
-						pango_layout_get_context(layout),
-						false);
-					pango_layout_set_ellipsize(
-						layout,
-						PANGO_ELLIPSIZE_END);
-					pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
-					PangoFontDescription *desc =
-						font_to_pango_desc(
-							&rc.font_icon);
-
-					set_cairo_color(cairo, tc);
-
-					int req_width = border_fbox.width - 2 * cbw -2;
-
-					int top_box_height = graphic_size + 2*bw + 4;
-					int bottom_box_height = border_fbox.height
-						- top_box_height;
-
-					pango_layout_set_font_description(
-						layout,
-						desc);
-
-					pango_layout_set_width(layout,
-						req_width * PANGO_SCALE);
-					pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
-					pango_layout_set_height(layout,
-						(icon_height - top_box_height - 2 * cbw - 2)
-						* PANGO_SCALE);
-					pango_font_description_free(desc);
-					pango_layout_set_text(layout,
-						view->title, -1);
-
-					PangoRectangle prect = {0};
-					pango_layout_get_extents(layout, NULL, &prect);
-
-					set_cairo_color(cairo, bc);
-
-					cairo_rectangle(cairo,
-						0,
-						0,
-						border_fbox.width,
-						top_box_height);
-					cairo_fill(cairo);
-
-					set_cairo_color(cairo, cc);
-
-					cairo_rectangle(cairo,
-						0,
-						top_box_height,
-						border_fbox.width,
-						bottom_box_height);
-					cairo_fill(cairo);
-
-					cairo_borders(cairo,
-						0,
-						0,
-						border_fbox.width,
-						top_box_height,
-						bw, highlight, shadow,
-						bt, bvw, bc);
-
-					cairo_borders(cairo,
-						0,
-						top_box_height,
-						border_fbox.width,
-						bottom_box_height,
-						cbw, chighlight, cshadow,
-						cbt, cbvw, cc);
-
-					cairo_move_to(cairo,
-						(border_fbox.width
-							- req_width) / 2,
-						top_box_height +
-						(bottom_box_height -
-							(prect.height/ PANGO_SCALE)) / 2
-						);
-
-					set_cairo_color(cairo, tc);
-					pango_cairo_show_layout(cairo,
-						layout);
-					g_object_unref(layout);
-
-					surface = cairo_get_target(cairo);
-					cairo_surface_flush(surface);
-					cairo_destroy(cairo);
-
-					struct scaled_icon_buffer *icon_buffer =
-					scaled_icon_buffer_create(output->icons_osd,
-						graphic_size, graphic_size);
-					scaled_icon_buffer_set_view(icon_buffer, view);
-
-					wlr_scene_node_set_position(
-						&icon_buffer->scene_buffer->node,
-						border_fbox.x+(border_fbox.width-graphic_size)/2,
-						border_fbox.y+(top_box_height - graphic_size) / 2);
-
-					wlr_scene_node_set_position(&scene_buffer->node,
-						border_fbox.x, border_fbox.y);
-					if (view == active_drag_icon) {
-						wlr_scene_node_raise_to_top(&scene_buffer->node);
-						wlr_scene_node_raise_to_top(
-							&icon_buffer->scene_buffer->node);
-					} else {
-						wlr_scene_node_lower_to_bottom(
-							&icon_buffer->scene_buffer->node);
-						wlr_scene_node_lower_to_bottom(&scene_buffer->node);
-					}
-
-					node_descriptor_create(
-						&icon_buffer->scene_buffer->node,
-						LAB_NODE_DESKTOP_ICON, view, 0);
-					node_descriptor_create(
-						&scene_buffer->node,
-						LAB_NODE_DESKTOP_ICON, view, 0);
-					wlr_buffer_drop(&cbuffer->base);
-				}
-			}
-			free(icon_map);
-			wscount++;
 		}
+
+		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			if (view->minimized) {
+				place_icon(icon_map, view, rows, cols, screenheight);
+				// Determine dimensions for mini-window (common)
+				struct wlr_fbox border_fbox = {
+					.width = icon_width,
+					.height = icon_height,
+					.x = view->icon_x,
+					.y = view->icon_y
+				};
+
+				struct lab_data_buffer *cbuffer = buffer_create_cairo(
+				border_fbox.width, border_fbox.height,
+					output->wlr_output->scale);
+				struct wlr_scene_buffer	*scene_buffer =
+					lab_wlr_scene_buffer_create(output->icons_osd,
+						&cbuffer->base);
+				wlr_scene_buffer_set_dest_size(scene_buffer,
+					border_fbox.width, border_fbox.height);
+
+				cairo_t *cairo;
+				cairo_surface_t *surface;
+				cairo = cairo_create(cbuffer->surface);
+
+				// Prepare border/caption styles that differ
+				// for minimized/normal windows
+				float *bc =
+					theme->icon_color;
+
+				float *cc =
+					theme->icon_caption_color;
+
+				int bw =
+					theme->icon_border_width;
+
+				int highlight =
+					theme->icon_highlight;
+
+				int shadow =
+					theme->icon_shadow;
+
+				enum border_type bt =
+					theme->icon_border_type;
+
+				int bvw =
+					theme->icon_bevel_width;
+
+				int cbw =
+					theme->icon_caption_border_width;
+
+				int chighlight =
+					theme->icon_caption_highlight;
+
+				int cshadow =
+					theme->icon_caption_shadow;
+
+				enum border_type cbt =
+					theme->icon_caption_border_type;
+
+				int cbvw =
+					theme->icon_caption_bevel_width;
+
+				float *tc =
+					theme->icon_title_color;
+
+				PangoLayout *layout =
+					pango_cairo_create_layout(cairo);
+				pango_context_set_round_glyph_positions(
+					pango_layout_get_context(layout),
+					false);
+				pango_layout_set_ellipsize(
+					layout,
+					PANGO_ELLIPSIZE_END);
+				pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
+				PangoFontDescription *desc =
+					font_to_pango_desc(
+						&rc.font_icon);
+
+				set_cairo_color(cairo, tc);
+
+				int req_width = border_fbox.width - 2 * cbw -2;
+
+				int top_box_height = graphic_size + 2*bw + 4;
+				int bottom_box_height = border_fbox.height
+					- top_box_height;
+
+				pango_layout_set_font_description(
+					layout,
+					desc);
+
+				pango_layout_set_width(layout,
+					req_width * PANGO_SCALE);
+				pango_layout_set_wrap(layout, PANGO_WRAP_WORD_CHAR);
+				pango_layout_set_height(layout,
+					(icon_height - top_box_height - 2 * cbw - 2)
+					* PANGO_SCALE);
+				pango_font_description_free(desc);
+				pango_layout_set_text(layout,
+					view->title, -1);
+
+				PangoRectangle prect = {0};
+				pango_layout_get_extents(layout, NULL, &prect);
+
+				set_cairo_color(cairo, bc);
+
+				cairo_rectangle(cairo,
+					0,
+					0,
+					border_fbox.width,
+					top_box_height);
+				cairo_fill(cairo);
+
+				set_cairo_color(cairo, cc);
+
+				cairo_rectangle(cairo,
+					0,
+					top_box_height,
+					border_fbox.width,
+					bottom_box_height);
+				cairo_fill(cairo);
+
+				cairo_borders(cairo,
+					0,
+					0,
+					border_fbox.width,
+					top_box_height,
+					bw, highlight, shadow,
+					bt, bvw, bc);
+
+				cairo_borders(cairo,
+					0,
+					top_box_height,
+					border_fbox.width,
+					bottom_box_height,
+					cbw, chighlight, cshadow,
+					cbt, cbvw, cc);
+
+				cairo_move_to(cairo,
+					(border_fbox.width
+						- req_width) / 2,
+					top_box_height +
+					(bottom_box_height -
+						(prect.height/ PANGO_SCALE)) / 2
+					);
+
+				set_cairo_color(cairo, tc);
+				pango_cairo_show_layout(cairo,
+					layout);
+				g_object_unref(layout);
+
+				surface = cairo_get_target(cairo);
+				cairo_surface_flush(surface);
+				cairo_destroy(cairo);
+
+				struct scaled_icon_buffer *icon_buffer =
+				scaled_icon_buffer_create(output->icons_osd,
+					graphic_size, graphic_size);
+				scaled_icon_buffer_set_view(icon_buffer, view);
+
+				wlr_scene_node_set_position(
+					&icon_buffer->scene_buffer->node,
+					border_fbox.x+(border_fbox.width-graphic_size)/2,
+					border_fbox.y+(top_box_height - graphic_size) / 2);
+
+				wlr_scene_node_set_position(&scene_buffer->node,
+					border_fbox.x, border_fbox.y);
+				if (view == active_drag_icon) {
+					wlr_scene_node_raise_to_top(&scene_buffer->node);
+					wlr_scene_node_raise_to_top(
+						&icon_buffer->scene_buffer->node);
+				} else {
+					wlr_scene_node_lower_to_bottom(
+						&icon_buffer->scene_buffer->node);
+					wlr_scene_node_lower_to_bottom(&scene_buffer->node);
+				}
+
+				node_descriptor_create(
+					&icon_buffer->scene_buffer->node,
+					LAB_NODE_DESKTOP_ICON, view, 0);
+				node_descriptor_create(
+					&scene_buffer->node,
+					LAB_NODE_DESKTOP_ICON, view, 0);
+				wlr_buffer_drop(&cbuffer->base);
+			}
+		}
+		free(icon_map);
 
 		if (output->icons_osd) {
 			wlr_scene_node_set_enabled(&output->icons_osd->node, true);
