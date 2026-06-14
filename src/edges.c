@@ -424,6 +424,18 @@ edges_find_neighbors(struct border *nearest_edges, struct view *view,
 		validate_edges(nearest_edges, view_edges,
 			target_edges, win_edges, edges_visible, validator);
 	}
+	
+	if (rc.pager_enabled) {
+		struct border win_edges = {
+			.top = rc.pager_y,
+			.right = rc.pager_x + rc.pager_width,
+			.bottom = rc.pager_y + rc.pager_height,
+			.left = rc.pager_x,
+		};
+
+		validate_edges(nearest_edges, view_edges,
+			target_edges, win_edges, LAB_EDGES_ALL, validator);
+	}
 }
 
 void
