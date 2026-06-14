@@ -118,6 +118,10 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 
 	/* Number of rows/columns is bounded by two per view plus screen edges */
 	int max_rc = 2 * nviews + 2;
+	if (rc.pager_enabled) {
+		// And two more for the pager
+		max_rc += 2;
+	}
 
 	bmp->rows = xzalloc(max_rc * sizeof(int));
 	bmp->cols = xzalloc(max_rc * sizeof(int));
@@ -165,6 +169,38 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 		x = v->pending.x + margin.right + view_effective_width(v, true);
 		y = v->pending.y + margin.bottom
 			+ view_effective_height(v, /* use_pending */ true);
+
+		/* Add a column if the right view edge is in the usable region */
+		if (x > usable.x && x < usable_right) {
+			assert(nr_cols < max_rc);
+			bmp->cols[nr_cols++] = x;
+		}
+
+		/* Add a row if the bottom view edge is in the usable region */
+		if (y > usable.y && y < usable_bottom) {
+			assert(nr_rows < max_rc);
+			bmp->rows[nr_rows++] = y;
+		}
+	}
+	
+	if (rc.pager_enabled) {
+		// Place the pager so we don't naively overlap it.
+		int x = rc.pager_x;
+		int y = rc.pager_y;
+		/* Add a column if the left view edge is in the usable region */
+		if (x > usable.x && x < usable_right) {
+			assert(nr_cols < max_rc);
+			bmp->cols[nr_cols++] = x;
+		}
+
+		/* Add a row if the top view edge is in the usable region */
+		if (y > usable.y && y < usable_bottom) {
+			assert(nr_rows < max_rc);
+			bmp->rows[nr_rows++] = y;
+		}
+
+		x += rc.pager_width;
+		y += rc.pager_height;
 
 		/* Add a column if the right view edge is in the usable region */
 		if (x > usable.x && x < usable_right) {
@@ -254,6 +290,57 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 		int hx = v->pending.x + margin.right + view_effective_width(v, true);
 		int hy = v->pending.y + margin.bottom  + view_effective_height(v, true);
 			+ view_effective_height(v, /* use_pending */ true);
+
+		/*
+		 * Find the first and last row and column intervals spanned by
+		 * this view. We want the left and top edges to fall in a
+		 * half-open interval [low, high) but the right and bottom
+		 * edges to fall in a half-open interval (low, high] to ensure
+		 * that the results do not include intervals adjacent to the
+		 * view. View edges are guaranteed by construction to fall
+		 * exactly on the grid points, so we perturb the left and top
+		 * edges by +0.5 units, and the right and bottom edges by -0.5
+		 * units, to ensure that we are always searching in the
+		 * interior of an interval.
+		 */
+
+		/* First row and column overlapping the view */
+		int fc = find_interval(bmp->cols, bmp->nr_cols, lx + 0.5);
+		int fr = find_interval(bmp->rows, bmp->nr_rows, ly + 0.5);
+
+		/* Clip first row/column to start of usable grid */
+		fc = MAX(fc, 0);
+		fr = MAX(fr, 0);
+
+		/* Last row and column overlapping the view */
+		int lc = find_interval(bmp->cols, bmp->nr_cols, hx - 0.5);
+		int lr = find_interval(bmp->rows, bmp->nr_rows, hy - 0.5);
+
+		/*
+		 * Increment the last indices to convert them to strict upper
+		 * bounds, then clip them to the limits of the usable grid.
+		 */
+		lc = MIN(bmp->nr_cols - 1, lc + 1);
+		lr = MIN(bmp->nr_rows - 1, lr + 1);
+
+		/*
+		 * Every interval in the region [fr, lr) x [fc, lc) is
+		 * completely covered by the view. Increment the overlap
+		 * counters these intervals to account for the view.
+		 */
+		for (int i = fr; i < lr; ++i) {
+			for (int j = fc; j < lc; ++j) {
+				overlap_bitmap_index(bmp, i, j) += 1;
+			}
+		}
+	}
+	
+	// Add overlap hints for the pager
+	if (rc.pager_enabled) {
+		int lx = rc.pager_x;
+		int ly = rc.pager_y;
+		int hx = rc.pager_x + rc.pager_width;
+		int hy = rc.pager_y + rc.pager_height;
 
 		/*
 		 * Find the first and last row and column intervals spanned by
