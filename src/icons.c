@@ -36,6 +36,8 @@
 
 float icon_drag_start_x, icon_drag_start_y;
 
+struct timespec last_icon_update;
+
 struct view *active_drag_icon;
 
 void process_icon_release(void)
@@ -105,6 +107,15 @@ void place_icon(unsigned char *icon_map,
 void icons_update(void)
 {
 	struct output *output;
+	struct timespec now = { 0 };
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	if ((now.tv_sec * 1000000000 + now.tv_nsec) -
+		(last_icon_update.tv_sec * 1000000000 + last_icon_update.tv_nsec)
+		< (1000000000/120)) {
+		// Don't bother updating the icons more than 120 times per second
+		// to avoid wasting effort.
+		return;
+	}
 	if (!rc.icons_enabled) {
 		wl_list_for_each(output, &server.outputs, link) {
 			if (!output_is_usable(output)) {
@@ -374,4 +385,6 @@ void icons_update(void)
 				&output->layer_tree[1]->node);
 		}
 	}
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	last_icon_update = now;
 }
