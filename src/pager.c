@@ -42,7 +42,7 @@ unsigned char *pixel_data;
 
 struct thumbnail_cache *thumb_cache;
 
-struct timespec last_update;
+struct timespec last_update = {0};
 
 struct wlr_fbox thumbnail_size(struct view *view)
 {

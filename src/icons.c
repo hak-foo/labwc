@@ -36,7 +36,7 @@
 
 float icon_drag_start_x, icon_drag_start_y;
 
-struct timespec last_icon_update;
+struct timespec last_icon_update = {0};
 
 struct view *active_drag_icon;
 
