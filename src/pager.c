@@ -42,6 +42,8 @@ unsigned char *pixel_data;
 
 struct thumbnail_cache *thumb_cache;
 
+struct timespec last_update;
+
 struct wlr_fbox thumbnail_size(struct view *view)
 {
 	int wscount = 0;
@@ -449,6 +451,15 @@ unsigned char *get_thumbnail_cache(
 
 void pager_update(void)
 {
+	struct timespec now = { 0 };
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	if ((now.tv_sec * 1000000000 + now.tv_nsec) -
+		(last_update.tv_sec * 1000000000 + last_update.tv_nsec)
+		< (1000000000/120)) {
+		// Don't bother updating the pager more than 120 times per second
+		// to avoid wasting effort.
+		return;
+	}
 	struct output *output;
 	if (!rc.pager_enabled) {
 		wl_list_for_each(output, &server.outputs, link) {
@@ -708,4 +719,7 @@ void pager_update(void)
 		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
 		wlr_buffer_drop(&buffer->base);
 	}
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	last_update = now;
 }

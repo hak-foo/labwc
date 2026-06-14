@@ -182,7 +182,7 @@ build_grid(struct overlap_bitmap *bmp, struct view *view)
 			bmp->rows[nr_rows++] = y;
 		}
 	}
-	
+
 	if (rc.pager_enabled) {
 		// Place the pager so we don't naively overlap it.
 		int x = rc.pager_x;
@@ -334,7 +334,7 @@ build_overlap(struct overlap_bitmap *bmp, struct view *view)
 			}
 		}
 	}
-	
+
 	// Add overlap hints for the pager
 	if (rc.pager_enabled) {
 		int lx = rc.pager_x;
