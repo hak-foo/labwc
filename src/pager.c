@@ -42,7 +42,9 @@ unsigned char *pixel_data;
 
 struct thumbnail_cache *thumb_cache;
 
-struct timespec last_update = {0};
+struct wl_event_source *pager_timeout;
+
+bool pager_timer_armed;
 
 struct wlr_fbox thumbnail_size(struct view *view)
 {
@@ -331,7 +333,8 @@ render_thumb_sized(struct output *output, struct view *view, float sx, float sy)
 // Flush a specific view from the cache.  This allows actual window
 // changes to reflect quickly, and a long-running cache so eventually
 // maybe we'll refresh slow windows not being interacted with
-void pager_flush(struct view *view)
+void
+pager_flush(struct view *view)
 {
 	// Sometimes, seems like after Focus events on
 	// tray icons, view is null, so bail before trying
@@ -449,17 +452,10 @@ unsigned char *get_thumbnail_cache(
 	return new_entry->thumbnail;
 }
 
-void pager_update(void)
+static int
+pager_update_debounced(void *data)
 {
-	struct timespec now = { 0 };
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	if ((now.tv_sec * 1000000000 + now.tv_nsec) -
-		(last_update.tv_sec * 1000000000 + last_update.tv_nsec)
-		< (1000000000/120)) {
-		// Don't bother updating the pager more than 120 times per second
-		// to avoid wasting effort.
-		return;
-	}
+	pager_timer_armed = false;
 	struct output *output;
 	if (!rc.pager_enabled) {
 		wl_list_for_each(output, &server.outputs, link) {
@@ -470,11 +466,11 @@ void pager_update(void)
 				wlr_scene_node_set_enabled(&output->pager_osd->node, false);
 			}
 		}
-		return;
+		return 0;
 	}
 
 	if (wl_list_empty(&rc.workspace_config.workspaces)) {
-		return;
+		return 0;
 	}
 
 	struct theme *theme = rc.theme;
@@ -719,7 +715,21 @@ void pager_update(void)
 		wlr_scene_node_place_below(&output->pager_osd->node, &output->layer_tree[1]->node);
 		wlr_buffer_drop(&buffer->base);
 	}
+	return 0;
+}
 
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	last_update = now;
+void pager_update(void)
+{
+	if (!pager_timeout) {
+		pager_timeout = wl_event_loop_add_timer(server.wl_event_loop,
+			pager_update_debounced, NULL);
+	}
+	if (!pager_timer_armed) {
+		// Only schedule the timer for 8ms out if we don't have it
+		// running.  This ensures we get smooth every-8ms activity
+		// when a lot of actions happen, but the last stragglers
+		// will still trigger a final update
+		wl_event_source_timer_update(pager_timeout, 8);
+		pager_timer_armed = true;
+	}
 }
