@@ -145,9 +145,9 @@ void icons_update(void)
 	struct wlr_box overall_box = { 0 };
 	wlr_output_layout_get_box(server.output_layout,
 		NULL, &overall_box);
-	int screenwidth = overall_box.width - overall_box.x - left_offset;
+	int screenwidth = overall_box.width - (left_offset - overall_box.x);
 	// Trim the bottom row off the screen height to ensure we always stay on screen
-	int screenheight = overall_box.height - overall_box.y - bottom_offset - y_spacing;
+	int screenheight = overall_box.height - (bottom_offset - overall_box.y) - y_spacing;
 
 	int rows = screenheight / y_spacing;
 	int cols = screenwidth / x_spacing;

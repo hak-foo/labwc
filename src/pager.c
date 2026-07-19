@@ -71,8 +71,8 @@ struct wlr_fbox thumbnail_size(struct view *view)
 
 	wscount = MIN(wscount, workspaces-1);
 
-	int wx = view->current.x * pagerwidth / screenwidth;
-	int wy = view->current.y * pagerheight / screenheight +
+	int wx = (view->current.x - overall_box.x) * pagerwidth / screenwidth;
+	int wy = (view->current.y - overall_box.y) * pagerheight / screenheight +
 		pagerheight * wscount;
 	int width = view->current.width * pagerwidth / screenwidth;
 	int height = view->current.height *
