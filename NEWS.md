@@ -9,7 +9,9 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-06-15 | [0.20.1]      | 0.20.1          | 28337         |
 | 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
+| 2026-06-11 | [0.9.8]       | 0.19.3          | 29284         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
@@ -45,7 +47,9 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.1]: NEWS.md#0201---2026-06-15
 [0.20.0]: NEWS.md#0200---2026-05-25
+[0.9.8]: NEWS.md#098---2026-06-11
 [0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
@@ -83,6 +87,35 @@ The format is based on [Keep a Changelog]
 ## unreleased
 
 [unreleased-commits]
+
+## Notes on wlroots-0.20
+
+There are some regression warnings worth noting for the switch to wlroots 0.20:
+
+- lxqt-panel auto-hiding does not work with a panel size greater than 40 [#3600]
+  [wlroots-5392]
+- Some Wine game windows disappear after alt-tab. It is not yet clear where the
+  bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
+  [wlroots-4103]
+
+[wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
+[wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+
+## 0.20.1 - 2026-06-15
+
+[0.20.1-commits]
+
+This is a small bug fix release.
+
+### Fixed
+
+- Handle titles with no visible characters, for example the left-to-right mark
+  (&lrm;) @Consolatis [#3630]
+- Protect against SIGABRT when TTY switching in unusual circumstances by
+  ensuring that xdg-shell windows have sensible width and height before trying
+  to set size on configure. This protects against an edge case experienced when
+  switching between labwc on one TTY and Xfce on XOrg on another TTY.
+  @johanmalm @Tamaranch [#3617]
 
 ## 0.20.0 - 2026-05-25
 
@@ -216,6 +249,16 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
+
+## 0.9.8 - 2026-06-11
+
+[0.9.8-commits]
+
+### Fixed
+
+- Handle titles with no visible characters @Consolatis [#3631]
+- Save window position on initial placement to fix Raspberry Pi pygame SDL
+  XWayland window starting off-screen. @tokyo4j [#3433] [#3625] [#3616]
 
 ## 0.9.7 - 2026-04-17
 
@@ -2770,8 +2813,10 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.0...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.1...HEAD
+[0.20.1-commits]: https://github.com/labwc/labwc/compare/0.20.0..0.20.1
 [0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
+[0.9.8-commits]: https://github.com/labwc/labwc/compare/0.9.7...0.9.8
 [0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
@@ -3223,6 +3268,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2956]: https://github.com/labwc/labwc/pull/2956
 [#2965]: https://github.com/labwc/labwc/pull/2965
 [#2967]: https://github.com/labwc/labwc/pull/2967
+[#2968]: https://github.com/labwc/labwc/pull/2968
 [#2970]: https://github.com/labwc/labwc/pull/2970
 [#2971]: https://github.com/labwc/labwc/pull/2971
 [#2972]: https://github.com/labwc/labwc/pull/2972
@@ -3317,6 +3363,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3428]: https://github.com/labwc/labwc/pull/3428
 [#3429]: https://github.com/labwc/labwc/pull/3429
 [#3430]: https://github.com/labwc/labwc/pull/3430
+[#3433]: https://github.com/labwc/labwc/pull/3433
 [#3439]: https://github.com/labwc/labwc/pull/3439
 [#3440]: https://github.com/labwc/labwc/pull/3440
 [#3441]: https://github.com/labwc/labwc/pull/3441
@@ -3343,4 +3390,14 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3543]: https://github.com/labwc/labwc/pull/3543
 [#3547]: https://github.com/labwc/labwc/pull/3547
 [#3567]: https://github.com/labwc/labwc/pull/3567
+[#3576]: https://github.com/labwc/labwc/pull/3576
+[#3577]: https://github.com/labwc/labwc/pull/3577
+[#3581]: https://github.com/labwc/labwc/pull/3581
 [#3595]: https://github.com/labwc/labwc/pull/3595
+[#3600]: https://github.com/labwc/labwc/pull/3600
+[#3615]: https://github.com/labwc/labwc/pull/3615
+[#3616]: https://github.com/labwc/labwc/pull/3616
+[#3617]: https://github.com/labwc/labwc/pull/3617
+[#3625]: https://github.com/labwc/labwc/pull/3625
+[#3630]: https://github.com/labwc/labwc/pull/3630
+[#3631]: https://github.com/labwc/labwc/pull/3631
